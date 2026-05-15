@@ -16,34 +16,47 @@ class FinalScoreService
         int   $redditScore,
         int   $numComments
     ): float {
-        $engagementScore = $this->calculateEngagement($redditScore, $numComments);
-        $qualityScore    = $this->calculateQuality($redditScore, $numComments);
+        // Si alguno de los dos scores principales es muy bajo,
+        // el post no es relevante aunque el otro sea alto
+        $coherencePenalty = $this->coherencePenalty($intentScore, $matchScore);
 
-        $final =
-            ($intentScore    * $this->weights['intent_weight'])    +
-            ($matchScore     * $this->weights['match_weight'])     +
-            ($engagementScore * $this->weights['engagement_weight']) +
-            ($qualityScore   * $this->weights['quality_weight']);
+        $engagementScore = $this->calculateEngagement($redditScore, $numComments);
+
+        $raw =
+            ($intentScore    * $this->weights['intent_weight'])     +
+            ($matchScore     * $this->weights['match_weight'])      +
+            ($engagementScore * $this->weights['engagement_weight']) ;
+
+        // Aplicar penalización de coherencia
+        $final = $raw * $coherencePenalty;
 
         return round(min(100, max(0, $final)), 2);
     }
 
-    private function calculateEngagement(int $score, int $comments): float
+    // Si intent < 40 o match < 30, el score se recorta progresivamente
+    private function coherencePenalty(float $intent, float $match): float
     {
-        if ($score <= 0) return 0;
+        // Post con match muy bajo = irrelevante aunque hable de algo urgente
+        if ($match < 20)  return 0.30;
+        if ($match < 35)  return 0.55;
+        if ($match < 50)  return 0.75;
 
-        // Log scaling para evitar que posts virales dominen todo
-        $logScore    = log10(max(1, $score)) * 25;
-        $logComments = log10(max(1, $comments)) * 15;
+        // Post con intent muy bajo = ruido aunque sea sobre el tema
+        if ($intent < 20) return 0.40;
+        if ($intent < 35) return 0.65;
 
-        return min(100, $logScore + $logComments);
+        // Ambos moderados — sin penalización
+        return 1.0;
     }
 
-    private function calculateQuality(int $score, int $comments): float
+    private function calculateEngagement(int $score, int $comments): float
     {
-        // Ratio comentarios/upvotes indica discusión real
-        if ($score <= 0) return 50;
-        $ratio = $comments / max(1, $score);
-        return min(100, $ratio * 100);
+        if ($score <= 0 && $comments <= 0) return 0;
+
+        // Log scaling — posts con 1000 upvotes no deben dominar sobre posts con 50
+        $logScore    = $score > 0    ? log10($score)    * 20 : 0;
+        $logComments = $comments > 0 ? log10($comments) * 15 : 0;
+
+        return min(100, $logScore + $logComments);
     }
 }

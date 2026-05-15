@@ -5,7 +5,10 @@ use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\BillingController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn() => redirect()->route('dashboard'));
+
+
+
+Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -27,10 +30,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Billing
     Route::get('/billing/plans',    [BillingController::class, 'plans'])->name('billing.plans');
     Route::post('/billing/upgrade', [BillingController::class, 'upgrade'])->name('billing.upgrade');
+
+    // Export (Pro only)
+    Route::get('/export/posts', [\App\Http\Controllers\ExportController::class, 'posts'])->name('export.posts');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
 require __DIR__.'/auth.php';

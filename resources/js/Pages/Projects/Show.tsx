@@ -3,13 +3,15 @@ import OpportunityCard from '@/Components/ReplyRadar/OpportunityCard';
 import { Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
+
 type Props = {
     project: any;
     posts: any[];
     canAddKeyword: boolean;
+    canExport: boolean;
 };
 
-export default function ProjectShow({ project, posts, canAddKeyword }: Props) {
+export default function ProjectShow({ project, posts, canAddKeyword,canExport }: Props) {
     const [sortBy, setSortBy] = useState<'final_score' | 'posted_at'>('final_score');
 
     const { data, setData, post, processing, errors, reset } = useForm({ term: '' });
@@ -115,10 +117,26 @@ export default function ProjectShow({ project, posts, canAddKeyword }: Props) {
                             value={sortBy}
                             onChange={e => setSortBy(e.target.value as any)}
                             className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                        >
+                        >   
                             <option value="final_score">Ordenar por score</option>
                             <option value="posted_at">Ordenar por fecha</option>
                         </select>
+                        {canExport ? (
+                            <Link
+                                href={`/export/posts?project_id=${project.id}`}
+                                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                ↓ Export CSV
+                            </Link>
+                        ) : (
+                            <Link
+                                href={route('billing.plans')}
+                                className="px-4 py-2 text-sm bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors"
+                                title="Disponible en plan Pro"
+                            >
+                                🔒 Export CSV
+                            </Link>
+                        )}
                     </div>
 
                     {posts.length === 0 ? (

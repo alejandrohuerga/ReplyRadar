@@ -70,6 +70,15 @@ class IntentScoringService
         'outsourcing companies' => -60,
         'development company'   => -45,
         'software company'      => -40,
+        'for hire'              => -45,
+        'i am available'        => -50,
+        'my services'           => -55,
+        'freelance'             => -30,
+        'i built'               => -15,  // self-promotion moderada
+        'i made'                => -10,
+        'i created'             => -10,
+        'i launched'            => -15,
+        'show hn:'              => -5,
     ];
 
     // Señales de discusión real (bonus moderado)

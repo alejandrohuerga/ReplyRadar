@@ -60,6 +60,7 @@ class ProjectController extends Controller
             'project'  => $project,
             'posts'    => $posts,
             'canAddKeyword' => $this->canAddKeyword($request->user(), $project),
+            'canExport' => $request->user()->isPro(),
         ]);
     }
 
@@ -84,4 +85,6 @@ class ProjectController extends Controller
         )->count();
         return $current < $limit;
     }
+
+    
 }
