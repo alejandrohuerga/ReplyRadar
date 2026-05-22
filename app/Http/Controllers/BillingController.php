@@ -8,18 +8,53 @@ class BillingController extends Controller
 {
     public function plans(Request $request)
     {
+        $user = $request->user();
+
         return Inertia::render('Billing/Plans', [
-            'currentPlan' => $request->user()->plan,
+            'auth' => [
+                'user' => $user,
+            ],
+            'currentPlan' => $user->plan,
+            'onTrial'     => $user->onTrial(),
+            'subscribed'  => $user->subscribed('default'),
         ]);
     }
 
-    // Simulación de upgrade (sin Stripe real por ahora — lo conectamos al final)
-    public function upgrade(Request $request)
+    public function checkout(Request $request)
     {
         $request->validate(['plan' => 'required|in:pro,business']);
 
-        $request->user()->update(['plan' => $request->plan]);
+        $user     = $request->user();
+        $priceId  = config("replyradar.stripe_prices.{$request->plan}");
 
-        return redirect()->route('dashboard')->with('success', "Plan actualizado a {$request->plan}.");
+        if ($user->subscribed('default')) {
+            return Inertia::location(
+                $user->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
+            );
+        }
+
+        $checkout = $user->newSubscription('default', $priceId)
+            ->checkout([
+                'success_url' => route('billing.success') . '?plan=' . $request->plan,
+                'cancel_url'  => route('billing.plans'),
+            ]);
+
+        return Inertia::location($checkout->url);
+    }
+
+    public function success(Request $request)
+    {
+        $plan = $request->query('plan', 'pro');
+        $request->user()->update(['plan' => $plan]);
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Bienvenido a ReplyRadar ' . ucfirst($plan) . '!');
+    }
+
+    public function portal(Request $request)
+    {
+        return Inertia::location(
+            $request->user()->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
+        );
     }
 }

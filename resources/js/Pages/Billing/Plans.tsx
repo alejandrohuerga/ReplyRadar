@@ -1,7 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 
-type Props = { currentPlan: string };
+type Props = {
+    currentPlan: string;
+    onTrial?: boolean;
+    subscribed?: boolean;
+};
 
 const plans = [
     {
@@ -34,13 +38,16 @@ const plans = [
     },
 ];
 
-export default function Plans({ currentPlan }: Props) {
-    const { post, processing } = useForm({});
+export default function Plans({ currentPlan, subscribed }: Props) {
+    const { data, setData, post, processing } = useForm({
+        plan: '',
+    });
 
-    const upgrade = (plan: string) => {
-        if (plan === currentPlan) return;
-        if (!confirm(`¿Cambiar al plan ${plan}?`)) return;
-        post(route('billing.upgrade'), { data: { plan } } as any);
+    const checkout = (planId: string) => {
+        if (planId === currentPlan || planId === 'free') return;
+        
+        setData('plan', planId);
+        post(route('billing.checkout'));
     };
 
     return (
@@ -49,6 +56,18 @@ export default function Plans({ currentPlan }: Props) {
                 <h1 className="text-3xl font-bold text-gray-900">Elige tu plan</h1>
                 <p className="text-gray-500 mt-2">Sin contratos. Cancela cuando quieras.</p>
             </div>
+
+            {/* Botón portal si ya está suscrito */}
+            {subscribed && (
+                <div className="text-center mb-8">
+                    <Link
+                        href={route('billing.portal')}
+                        className="inline-block px-6 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                        🔧 Gestionar suscripción en Stripe
+                    </Link>
+                </div>
+            )}
 
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {plans.map(plan => (
@@ -76,7 +95,7 @@ export default function Plans({ currentPlan }: Props) {
                         </ul>
 
                         <button
-                            onClick={() => upgrade(plan.id)}
+                            onClick={() => checkout(plan.id)}
                             disabled={processing || plan.id === currentPlan || plan.id === 'free'}
                             className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-60 ${plan.button}`}
                         >
