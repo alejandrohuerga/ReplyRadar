@@ -95,7 +95,9 @@ export default function ProjectShow({ project, posts, canAddKeyword,canExport }:
                                                 method="delete"
                                                 as="button"
                                                 className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-                                                onClick={e => { if (!confirm('¿Eliminar keyword?')) e.preventDefault(); }}
+                                                onClick={(e) => {
+                                                    if (!confirm('¿Eliminar keyword?')) e.preventDefault();
+                                                }}
                                             >
                                                 ✕
                                             </Link>

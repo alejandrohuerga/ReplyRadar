@@ -17,6 +17,7 @@ class ProjectController extends Controller
             ->get();
 
         return Inertia::render('Projects/Index', [
+            'auth'     => ['user' => $request->user()],
             'projects' => $projects,
             'canCreate' => $this->canCreateProject($request->user()),
         ]);
@@ -57,6 +58,7 @@ class ProjectController extends Controller
             ]);
 
         return Inertia::render('Projects/Show', [
+            'auth'     => ['user' => $request->user()],
             'project'  => $project,
             'posts'    => $posts,
             'canAddKeyword' => $this->canAddKeyword($request->user(), $project),
