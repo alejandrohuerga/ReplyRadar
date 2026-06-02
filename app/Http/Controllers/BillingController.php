@@ -2,24 +2,61 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class BillingController extends Controller
 {
     public function plans(Request $request)
     {
-        return Inertia::render('Billing/Plans', [
-            'currentPlan' => $request->user()->plan,
+        $user = $request->user();
+
+        return view('billing.plans', [
+            'currentPlan'     => $user->plan,
+            'onTrial'         => $user->onTrial(),
+            'subscribed'      => $user->subscribed('default'),
+            'stripeReady'     => config('replyradar.stripe_prices.pro') && config('replyradar.stripe_prices.business'),
         ]);
     }
 
-    // Simulación de upgrade (sin Stripe real por ahora — lo conectamos al final)
-    public function upgrade(Request $request)
+    public function checkout(Request $request)
     {
         $request->validate(['plan' => 'required|in:pro,business']);
 
-        $request->user()->update(['plan' => $request->plan]);
+        $user     = $request->user();
+        $priceId  = config("replyradar.stripe_prices.{$request->plan}");
 
-        return redirect()->route('dashboard')->with('success', "Plan actualizado a {$request->plan}.");
+        if (! $priceId) {
+            return redirect()->route('billing.plans')
+                ->with('error', __('Stripe price not configured for this plan. Contact support.'));
+        }
+
+        if ($user->subscribed('default')) {
+            return redirect()->away(
+                $user->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
+            );
+        }
+
+        $checkout = $user->newSubscription('default', $priceId)
+            ->checkout([
+                'success_url' => route('billing.success') . '?plan=' . $request->plan,
+                'cancel_url'  => route('billing.plans'),
+            ]);
+
+        return redirect()->away($checkout->url);
+    }
+
+    public function success(Request $request)
+    {
+        $plan = $request->query('plan', 'pro');
+        $request->user()->update(['plan' => $plan]);
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Bienvenido a ReplyRadar ' . ucfirst($plan) . '!');
+    }
+
+    public function portal(Request $request)
+    {
+        return redirect()->away(
+            $request->user()->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
+        );
     }
 }

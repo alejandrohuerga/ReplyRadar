@@ -3,10 +3,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
-
-
+Route::get('/language/{locale}', LanguageController::class)->name('language.switch');
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
@@ -25,11 +26,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Keywords (anidadas bajo proyecto)
     Route::post('/projects/{project}/keywords',      [KeywordController::class, 'store'])->name('keywords.store');
     Route::patch('/keywords/{keyword}/toggle',       [KeywordController::class, 'toggle'])->name('keywords.toggle');
-    Route::delete('/keywords/{keyword}',             [KeywordController::class, 'destroy'])->name('keywords.destroy');
+    Route::match(['delete', 'post'], '/keywords/{keyword}', [KeywordController::class, 'destroy'])->name('keywords.destroy');
 
     // Billing
     Route::get('/billing/plans',    [BillingController::class, 'plans'])->name('billing.plans');
-    Route::post('/billing/upgrade', [BillingController::class, 'upgrade'])->name('billing.upgrade');
+    Route::post('/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+    Route::get('/billing/success',  [BillingController::class, 'success'])->name('billing.success');
+    Route::get('/billing/portal',   [BillingController::class, 'portal'])->name('billing.portal');
 
     // Export (Pro only)
     Route::get('/export/posts', [\App\Http\Controllers\ExportController::class, 'posts'])->name('export.posts');
@@ -39,6 +42,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Stripe webhook (sin auth, sin CSRF)
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
 
 
 require __DIR__.'/auth.php';
