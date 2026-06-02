@@ -25,13 +25,13 @@
                     'featured' => false,
                 ],
                 (object)[
-                    'id' => 'pro', 'name' => 'Pro', 'price' => '$29', 'desc' => __('For creators and solopreneurs'),
-                    'features' => [__('5 projects'), __('50 keywords'), __('Unlimited opportunities'), __('90-day history'), __('Export to CSV')],
+                    'id' => 'pro', 'name' => 'Pro', 'price' => '24€', 'desc' => __('For creators and solopreneurs'),
+                    'features' => [__('5 projects'), __('50 keywords'), __('Unlimited opportunities'), __('90-day history'), __('Export to CSV'), __('Opportunities with +80 match')],
                     'featured' => true,
                 ],
                 (object)[
-                    'id' => 'business', 'name' => 'Business', 'price' => '$99', 'desc' => __('For agencies and teams'),
-                    'features' => [__('Unlimited projects'), __('Unlimited keywords'), __('Multi-source'), __('API access'), __('Priority support')],
+                    'id' => 'business', 'name' => 'Business', 'price' => '99€', 'desc' => __('For agencies and teams'),
+                    'features' => [__('Everything in Pro'), __('Unlimited projects'), __('Unlimited keywords'), __('Multi-source'), __('API access'), __('Priority support')],
                     'featured' => false,
                 ],
             ];

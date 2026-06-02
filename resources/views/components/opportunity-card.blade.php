@@ -1,4 +1,6 @@
-@props(['post'])
+@props(['post', 'blurredIds' => collect([])])
+
+@php $isBlurred = $blurredIds->contains($post->id); @endphp
 
 @php
     $score = round($post->final_score);
@@ -6,9 +8,9 @@
     $matchScore = round($post->match_score);
     $redditScore = $post->reddit_score ?? 0;
 
-    if ($score >= 80) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
-    elseif ($score >= 60) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
-    elseif ($score >= 40) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
+    if ($score >= 40) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
+    elseif ($score >= 25) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
+    elseif ($score >= 15) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
     else { $badge = [__('Cold'), 'bg-gray-500/20 text-gray-400 border-gray-500/20']; }
 
     if ($matchScore >= 80) { $fire = '🔥🔥🔥'; $fireClass = 'text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.6)]'; $fireBar = 'from-red-500 via-orange-400 to-yellow-300'; }
@@ -18,8 +20,20 @@
 @endphp
 
 <div class="glass-card !p-5">
+    @if($isBlurred)
+        <div class="flex items-center justify-between -mx-5 -mt-5 mb-4 px-5 py-2.5 bg-gradient-to-r from-indigo-600/30 to-purple-600/20 border-b border-white/10 rounded-t-xl">
+            <div class="flex items-center gap-2">
+                <span class="text-sm">🔒</span>
+                <span class="text-xs text-gray-300 font-medium">{{ __('Premium opportunity') }}</span>
+            </div>
+            <a href="{{ route('billing.plans') }}"
+                class="text-xs text-indigo-300 hover:text-white font-medium transition-colors">
+                {{ __('Upgrade') }} →
+            </a>
+        </div>
+    @endif
     <div class="flex items-start justify-between gap-4">
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 {{ $isBlurred ? 'blur-sm' : '' }}">
             <a href="{{ $post->url }}" target="_blank" rel="noopener noreferrer"
                 class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
                 {{ $post->title }}
@@ -44,19 +58,19 @@
                     {{ $matchScore }}
                 </span>
             </div>
-            <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden {{ $isBlurred ? 'blur-sm' : '' }}">
                 <div class="h-full rounded-full bg-gradient-to-r {{ $fireBar }}" style="width: {{ $matchScore }}%"></div>
             </div>
         </div>
 
-        <div class="shrink-0">
+        <div class="shrink-0 {{ $isBlurred ? 'blur-sm' : '' }}">
             <span class="inline-flex items-center gap-1 rounded-full border text-[10px] px-2 py-0.5 font-medium {{ $badge[1] }}">
                 <span class="font-bold">{{ $score }}</span>
             </span>
         </div>
     </div>
 
-    <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
+    <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 {{ $isBlurred ? 'blur-sm' : '' }}">
         <div class="text-center">
             <div class="text-xs text-gray-500">{{ __('Intent') }}</div>
             <div class="text-sm font-semibold text-gray-200">{{ $intentScore }}</div>

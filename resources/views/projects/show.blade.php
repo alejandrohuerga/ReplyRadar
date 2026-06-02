@@ -98,7 +98,7 @@
             @else
                 <div class="grid gap-3">
                     @foreach($posts as $post)
-                        <x-opportunity-card :post="$post" />
+                        <x-opportunity-card :post="$post" :blurred-ids="$blurredIds" />
                     @endforeach
                 </div>
             @endif

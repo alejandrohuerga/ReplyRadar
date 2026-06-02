@@ -275,5 +275,6 @@ return [
     'stripe_prices' => [
         'pro'      => env('STRIPE_PRO_PRICE_ID'),
         'business' => env('STRIPE_BUSINESS_PRICE_ID'),
+        'promo_14' => env('STRIPE_PROMO_14'),
     ],
 ];

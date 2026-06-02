@@ -74,10 +74,10 @@
                 </div>
                 <div class="space-y-2">
                     @foreach([
-                        ['title' => 'researching subscription management platforms for a growing SaaS', 'score' => 76, 'subreddit' => 'SaaS', 'hot' => true],
-                        ['title' => 'Is there a tool that detects buyer intent from Reddit posts?', 'score' => 71, 'subreddit' => 'entrepreneur', 'hot' => true],
-                        ['title' => 'what SaaS niche has terrible UX but insane retention?', 'score' => 54, 'subreddit' => 'micro_saas', 'hot' => false],
-                        ['title' => 'Is Micro SaaS a good side hustle in 2025?', 'score' => 52, 'subreddit' => 'sidehustle', 'hot' => false],
+                        ['title' => __('researching subscription management platforms for a growing SaaS'), 'score' => 76, 'subreddit' => 'SaaS', 'hot' => true],
+                        ['title' => __('Is there a tool that detects buyer intent from Reddit posts?'), 'score' => 71, 'subreddit' => 'entrepreneur', 'hot' => true],
+                        ['title' => __('what SaaS niche has terrible UX but insane retention?'), 'score' => 54, 'subreddit' => 'micro_saas', 'hot' => false],
+                        ['title' => __('Is Micro SaaS a good side hustle in 2025?'), 'score' => 52, 'subreddit' => 'sidehustle', 'hot' => false],
                     ] as $item)
                         <div class="flex items-center justify-between gap-3 bg-white/[0.03] rounded-xl px-4 py-3 border border-white/[0.04]">
                             <div class="flex-1 min-w-0">
@@ -148,9 +148,11 @@
             <div class="grid sm:grid-cols-3 gap-4">
                 @php
                     $plans = [
-                        ['name' => 'Free', 'price' => '$0', 'period' => '', 'features' => [__('1 project'), __('5 keywords'), __('50 opportunities/mo')], 'cta' => __('Get started free'), 'featured' => false],
-                        ['name' => 'Pro', 'price' => '$29', 'period' => __('/mo'), 'features' => [__('5 projects'), __('50 keywords'), __('Unlimited opportunities'), __('Export to CSV'), __('Email alerts')], 'cta' => __('Start Pro'), 'featured' => true],
-                        ['name' => 'Business', 'price' => '$99', 'period' => __('/mo'), 'features' => [__('Everything unlimited'), __('API access'), __('Multi-source'), __('Priority support')], 'cta' => __('Contact'), 'featured' => false],
+                        ['name' => 'Free', 'price' => '0€', 'period' => '', 'features' => [__('1 project'), __('5 keywords'), __('50 opportunities/mo'), __('7-day history')], 'cta' => __('Get started free'), 'featured' => false],
+
+                        ['name' => 'Pro', 'price' => '24€', 'period' => __('/mo'), 'features' => [__('5 projects'), __('50 keywords'), __('Unlimited opportunities'), __('90-day history'), __('Export to CSV'), __('Opportunities with +80 match')], 'cta' => __('Start Pro'), 'featured' => true],
+
+                        ['name' => 'Business', 'price' => '99€', 'period' => __('/mo'), 'features' => [__('Everything in Pro'), __('Unlimited projects'), __('Unlimited keywords'), __('Multi-source'), __('API access'), __('Priority support')], 'cta' => __('Contact'), 'featured' => false],
                     ];
                 @endphp
                 @foreach($plans as $plan)
