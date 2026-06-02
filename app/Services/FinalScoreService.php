@@ -50,9 +50,10 @@ class FinalScoreService
         if ($match < 40)  return 0.60;
         if ($match < 55)  return 0.80;
 
-        if ($intent < 15) return 0.35;
-        if ($intent < 25) return 0.55;
-        if ($intent < 40) return 0.75;
+        if ($intent < 10) return 0.45;
+        if ($intent < 20) return 0.60;
+        if ($intent < 30) return 0.75;
+        if ($intent < 40) return 0.85;
 
         return 1.0;
     }

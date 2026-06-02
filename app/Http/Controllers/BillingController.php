@@ -2,7 +2,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class BillingController extends Controller
 {
@@ -10,13 +9,11 @@ class BillingController extends Controller
     {
         $user = $request->user();
 
-        return Inertia::render('Billing/Plans', [
-            'auth' => [
-                'user' => $user,
-            ],
-            'currentPlan' => $user->plan,
-            'onTrial'     => $user->onTrial(),
-            'subscribed'  => $user->subscribed('default'),
+        return view('billing.plans', [
+            'currentPlan'     => $user->plan,
+            'onTrial'         => $user->onTrial(),
+            'subscribed'      => $user->subscribed('default'),
+            'stripeReady'     => config('replyradar.stripe_prices.pro') && config('replyradar.stripe_prices.business'),
         ]);
     }
 
@@ -27,8 +24,13 @@ class BillingController extends Controller
         $user     = $request->user();
         $priceId  = config("replyradar.stripe_prices.{$request->plan}");
 
+        if (! $priceId) {
+            return redirect()->route('billing.plans')
+                ->with('error', __('Stripe price not configured for this plan. Contact support.'));
+        }
+
         if ($user->subscribed('default')) {
-            return Inertia::location(
+            return redirect()->away(
                 $user->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
             );
         }
@@ -39,7 +41,7 @@ class BillingController extends Controller
                 'cancel_url'  => route('billing.plans'),
             ]);
 
-        return Inertia::location($checkout->url);
+        return redirect()->away($checkout->url);
     }
 
     public function success(Request $request)
@@ -53,7 +55,7 @@ class BillingController extends Controller
 
     public function portal(Request $request)
     {
-        return Inertia::location(
+        return redirect()->away(
             $request->user()->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
         );
     }

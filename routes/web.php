@@ -4,10 +4,10 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
-
-
+Route::get('/language/{locale}', LanguageController::class)->name('language.switch');
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
@@ -26,7 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Keywords (anidadas bajo proyecto)
     Route::post('/projects/{project}/keywords',      [KeywordController::class, 'store'])->name('keywords.store');
     Route::patch('/keywords/{keyword}/toggle',       [KeywordController::class, 'toggle'])->name('keywords.toggle');
-    Route::delete('/keywords/{keyword}',             [KeywordController::class, 'destroy'])->name('keywords.destroy');
+    Route::match(['delete', 'post'], '/keywords/{keyword}', [KeywordController::class, 'destroy'])->name('keywords.destroy');
 
     // Billing
     Route::get('/billing/plans',    [BillingController::class, 'plans'])->name('billing.plans');

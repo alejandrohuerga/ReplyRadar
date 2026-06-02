@@ -59,42 +59,46 @@ class KeywordMatchingService
 
         $score = 0.0;
 
-        // --- BLOQUE 1: Frase exacta ---
+        $exactPhraseTitleBonus = $this->config['exact_phrase_title_bonus'] ?? 80;
+        $exactPhraseContentBonus = $this->config['exact_phrase_content_bonus'] ?? 55;
+
+        // --- BLOQUE 1: Frase exacta en título (máxima confianza) ---
         if (str_contains($titleLower, $keyword)) {
-            return min(100, ($this->config['exact_phrase_title_bonus'] ?? 90) + $this->densityBonus($fullText, $keyword));
+            return min(100, $exactPhraseTitleBonus + $this->densityBonus($fullText, $keyword));
         }
+
+        // --- BLOQUE 1B: Frase exacta en contenido ---
         if (str_contains($contentLower, $keyword)) {
-            $score = max($score, ($this->config['exact_phrase_content_bonus'] ?? 70) + $this->densityBonus($fullText, $keyword));
+            $score = max($score, $exactPhraseContentBonus + $this->densityBonus($fullText, $keyword));
         }
 
-        // --- BLOQUE 2: N-gramas - coincidencia de subfrases significativas ---
-        $ngramScore = $this->ngramScore($keyword, $titleLower, $contentLower, $originalWords);
-        $score = max($score, $ngramScore);
-
-        // --- BLOQUE 3: Todas las palabras en el título ---
+        // --- BLOQUE 2: Todas las palabras exactas en el título ---
         if (count($originalWords) > 0) {
             $titleHits = array_filter($originalWords, fn($w) => str_contains($titleLower, $w));
             if (count($titleHits) === count($originalWords)) {
                 $proximity = $this->proximityScore($titleLower, $originalWords);
-                $score = max($score, ($this->config['all_words_title_bonus'] ?? 75) + $proximity);
+                $allWordsBonus = $this->config['all_words_title_bonus'] ?? 60;
+                $score = max($score, $allWordsBonus + $proximity);
             }
+        }
+
+        // --- BLOQUE 3: N-gramas (solo si hay 2+ palabras) ---
+        if (count($originalWords) >= 2) {
+            $ngramScore = $this->ngramScore($keyword, $titleLower, $contentLower, $originalWords);
+            $score = max($score, $ngramScore);
         }
 
         // --- BLOQUE 4: Coincidencia semántica (sinónimos) ---
         $semanticScore = $this->semanticScore($expandedTerms, $originalWords, $titleLower, $contentLower);
         $score = max($score, $semanticScore);
 
-        // --- BLOQUE 5: Dominio matching ---
-        $domainScore = $this->domainMatchScore($originalWords, $titleLower, $contentLower);
-        $score = max($score, $domainScore);
-
-        // --- BLOQUE 6: Fallback ponderado ---
-        if ($score < 20 && count($originalWords) > 0) {
-            $titleMatches   = count(array_filter($originalWords, fn($w) => str_contains($titleLower, $w)));
-            $contentMatches = count(array_filter($originalWords, fn($w) => str_contains($contentLower, $w)));
-            $total          = count($originalWords);
-            $weighted       = (($titleMatches * 2) + $contentMatches) / ($total * 3);
-            $score          = max($score, round($weighted * ($this->config['partial_match_max'] ?? 40), 1));
+        // --- BLOQUE 5: Fallback ponderado (solo palabras en título) ---
+        if ($score < 15 && count($originalWords) > 0) {
+            $titleMatches = count(array_filter($originalWords, fn($w) => str_contains($titleLower, $w)));
+            $total        = count($originalWords);
+            $weighted     = $titleMatches / $total;
+            $partialMax   = $this->config['partial_match_max'] ?? 25;
+            $score        = max($score, round($weighted * $partialMax, 1));
         }
 
         return min(100, max(0, round($score, 1)));
@@ -102,27 +106,25 @@ class KeywordMatchingService
 
     private function ngramScore(string $keyword, string $title, string $content, array $words): float
     {
-        if (count($words) < 2) return 0;
-
         $bestScore = 0.0;
 
-        // Bigramas: pares de palabras consecutivas
         for ($i = 0; $i < count($words) - 1; $i++) {
             $bigram = $words[$i] . ' ' . $words[$i + 1];
             if (str_contains($title, $bigram)) {
-                $bestScore = max($bestScore, 85 + $this->densityBonus($title, $bigram));
+                $bestScore = max($bestScore, 70 + $this->densityBonus($title, $bigram));
             } elseif (str_contains($content, $bigram)) {
-                $bestScore = max($bestScore, 60);
+                $bestScore = max($bestScore, 45);
             }
         }
 
-        // Trigramas
-        for ($i = 0; $i < count($words) - 2; $i++) {
-            $trigram = $words[$i] . ' ' . $words[$i + 1] . ' ' . $words[$i + 2];
-            if (str_contains($title, $trigram)) {
-                $bestScore = max($bestScore, 92);
-            } elseif (str_contains($content, $trigram)) {
-                $bestScore = max($bestScore, 72);
+        if (count($words) >= 3) {
+            for ($i = 0; $i < count($words) - 2; $i++) {
+                $trigram = $words[$i] . ' ' . $words[$i + 1] . ' ' . $words[$i + 2];
+                if (str_contains($title, $trigram)) {
+                    $bestScore = max($bestScore, 78);
+                } elseif (str_contains($content, $trigram)) {
+                    $bestScore = max($bestScore, 55);
+                }
             }
         }
 
@@ -168,22 +170,22 @@ class KeywordMatchingService
 
             if (str_contains($title, $orig)) {
                 $coveredInTitle = true;
-            } elseif (str_contains($content, $orig)) {
-                $coveredInContent = true;
             }
 
             if (!$coveredInTitle && !$coveredInContent) {
-                $synonyms = $this->synonymMap[$orig] ?? $this->domainSynonyms[$orig] ?? [];
+                $synonyms = $this->synonymMap[$orig] ?? [];
                 foreach ($synonyms as $syn) {
                     if (strlen($syn) < 3) continue;
                     if (str_contains($title, $syn)) {
                         $coveredInTitle = true;
                         break;
                     }
-                    if (str_contains($content, $syn)) {
-                        $coveredInContent = true;
-                        break;
-                    }
+                }
+            }
+
+            if (!$coveredInTitle && !$coveredInContent) {
+                if (str_contains($content, $orig)) {
+                    $coveredInContent = true;
                 }
             }
 
@@ -195,20 +197,22 @@ class KeywordMatchingService
             }
         }
 
+        if ($titleCovered === 0 && $coveredWords === 0) return 0;
+
         $coverage = $coveredWords / $originalCount;
-        $titleBonus = min(20, $titleCovered * 8);
-        $synonymBoost = $this->config['synonym_match_boost'] ?? 0.7;
+        $titleBonus = min(15, $titleCovered * 5);
+        $synonymBoost = $this->config['synonym_match_boost'] ?? 0.5;
 
         $coveragePenalty = match (true) {
-            $coverage >= 1.0   => 1.0,
-            $coverage >= 0.75  => 0.85,
-            $coverage >= 0.5   => 0.65,
-            default            => 0.35,
+            $coverage >= 1.0   => 0.85,
+            $coverage >= 0.75  => 0.65,
+            $coverage >= 0.5   => 0.45,
+            default            => 0.20,
         };
 
-        $base = $coverage * 70 * $coveragePenalty * $synonymBoost;
+        $base = $coverage * 50 * $coveragePenalty * $synonymBoost;
 
-        return round(min(100, $base + $titleBonus), 1);
+        return round(min(70, $base + $titleBonus), 1);
     }
 
     private function domainMatchScore(array $words, string $title, string $content): float
@@ -223,13 +227,13 @@ class KeywordMatchingService
                 $hits = 0;
                 foreach ($synonyms as $syn) {
                     if (strlen($syn) < 3) continue;
-                    if (str_contains($text, $syn)) {
+                    if (str_contains($title, $syn)) {
                         $hits++;
                     }
                 }
 
                 if ($hits > 0) {
-                    $domainScore = min(65, $hits * 8 + (str_contains($title, $word) ? 15 : 0));
+                    $domainScore = min(40, $hits * 6 + (str_contains($title, $word) ? 10 : 0));
                     $score = max($score, $domainScore);
                 }
             }

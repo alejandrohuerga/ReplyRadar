@@ -1,14 +1,13 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\Project;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $projects = $request->user()
             ->projects()
@@ -16,8 +15,7 @@ class ProjectController extends Controller
             ->latest()
             ->get();
 
-        return Inertia::render('Projects/Index', [
-            'auth'     => ['user' => $request->user()],
+        return view('projects.index', [
             'projects' => $projects,
             'canCreate' => $this->canCreateProject($request->user()),
         ]);
@@ -39,17 +37,19 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('success', 'Proyecto creado.');
     }
 
-    public function show(Request $request, Project $project): Response
+    public function show(Request $request, Project $project)
     {
-        // Asegura que el proyecto pertenece al usuario
         abort_if($project->user_id !== $request->user()->id, 403);
 
         $project->load('keywords');
 
-        $posts = \App\Models\Post::whereHas('keyword', fn($q) =>
+        $sort = $request->input('sort', 'final_score');
+        $sortColumn = in_array($sort, ['final_score', 'posted_at']) ? $sort : 'final_score';
+
+        $posts = Post::whereHas('keyword', fn($q) =>
                 $q->where('project_id', $project->id)
             )
-            ->orderByDesc('final_score')
+            ->orderByDesc($sortColumn)
             ->limit(100)
             ->get([
                 'id', 'title', 'subreddit', 'url', 'author',
@@ -57,8 +57,7 @@ class ProjectController extends Controller
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);
 
-        return Inertia::render('Projects/Show', [
-            'auth'     => ['user' => $request->user()],
+        return view('projects.show', [
             'project'  => $project,
             'posts'    => $posts,
             'canAddKeyword' => $this->canAddKeyword($request->user(), $project),
@@ -87,7 +86,5 @@ class ProjectController extends Controller
         )->count();
         return $current < $limit;
     }
-
-    
 }
 

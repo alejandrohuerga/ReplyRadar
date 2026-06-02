@@ -2,17 +2,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user     = $request->user();
         $projects = $user->projects()->with('keywords')->get();
 
-        // Oportunidades globales del usuario ordenadas por score
         $opportunities = \App\Models\Post::whereHas('keyword.project', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -24,10 +21,7 @@ class DashboardController extends Controller
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);
 
-        return Inertia::render('Dashboard', [
-            'auth' => [
-                'user' => $user,
-            ],
+        return view('dashboard.index', [
             'projects'      => $projects,
             'opportunities' => $opportunities,
             'stats'         => [
