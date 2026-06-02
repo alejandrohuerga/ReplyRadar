@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>ReplyRadar</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo/logoSoloSinFondo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
@@ -18,7 +20,7 @@
                 {{-- Logo --}}
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                     <img src="{{ asset('images/logo/logoSoloSinFondo.png') }}" alt="ReplyRadar" class="h-8 w-auto">
-                    <span class="font-bold text-lg text-white">ReplyRadar</span>
+                    <span class="hidden sm:inline font-bold text-lg text-white">ReplyRadar</span>
                 </a>
 
                 {{-- Right --}}

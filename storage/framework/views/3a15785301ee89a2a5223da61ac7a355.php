@@ -54,6 +54,31 @@
             <span class="text-sm text-gray-500" x-text="'<?php echo e($opportunities->count()); ?> <?php echo e(__('results')); ?>'"></span>
         </div>
 
+        <?php if($blurredIds->isNotEmpty()): ?>
+            <div class="mb-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🚀</span>
+                    <div>
+                        <p class="text-sm text-amber-100 font-medium"><?php echo e(__('Unlock big opportunities for only')); ?> <span class="text-amber-300 font-bold">€14,99</span></p>
+                        <p class="text-xs text-amber-400/70"><?php echo e(__('Offer for the first 100 users this week')); ?></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-amber-300">22</div>
+                        <div class="text-[10px] text-amber-400/60 uppercase tracking-wider"><?php echo e(__('spots left')); ?></div>
+                    </div>
+                    <form method="POST" action="<?php echo e(route('billing.promo14')); ?>" class="inline">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit"
+                            class="whitespace-nowrap text-sm glass-btn-primary !px-4 !py-2">
+                            <?php echo e(__('Upgrade now')); ?> →
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+
         
         <div class="grid gap-3">
             <?php $__empty_1 = true; $__currentLoopData = $opportunities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $post): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
@@ -78,14 +103,14 @@
                 >
                     <?php if (isset($component)) { $__componentOriginal24b019fd63fae09ba9fb2a5e4cd3e3be = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal24b019fd63fae09ba9fb2a5e4cd3e3be = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.opportunity-card','data' => ['post' => $post]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.opportunity-card','data' => ['post' => $post,'blurredIds' => $blurredIds]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('opportunity-card'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['post' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($post)]); ?>
+<?php $component->withAttributes(['post' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($post),'blurred-ids' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($blurredIds)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal24b019fd63fae09ba9fb2a5e4cd3e3be)): ?>

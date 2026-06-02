@@ -44,6 +44,31 @@ class BillingController extends Controller
         return redirect()->away($checkout->url);
     }
 
+    public function checkoutPromo14(Request $request)
+    {
+        $user    = $request->user();
+        $priceId = config('replyradar.stripe_prices.promo_14');
+
+        if (! $priceId) {
+            return redirect()->route('dashboard')
+                ->with('error', __('Promo not available at this time.'));
+        }
+
+        if ($user->subscribed('default')) {
+            return redirect()->away(
+                $user->redirectToBillingPortal(route('billing.plans'))->getTargetUrl()
+            );
+        }
+
+        $checkout = $user->newSubscription('default', $priceId)
+            ->checkout([
+                'success_url' => route('billing.success') . '?plan=pro',
+                'cancel_url'  => route('dashboard'),
+            ]);
+
+        return redirect()->away($checkout->url);
+    }
+
     public function success(Request $request)
     {
         $plan = $request->query('plan', 'pro');

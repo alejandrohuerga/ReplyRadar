@@ -57,9 +57,15 @@ class ProjectController extends Controller
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);
 
+        $blurredIds = collect([]);
+        if ($request->user()->plan === 'free') {
+            $blurredIds = $posts->where('match_score', '>', 79)->pluck('id');
+        }
+
         return view('projects.show', [
             'project'  => $project,
             'posts'    => $posts,
+            'blurredIds' => $blurredIds,
             'canAddKeyword' => $this->canAddKeyword($request->user(), $project),
             'canExport' => $request->user()->isPro(),
         ]);

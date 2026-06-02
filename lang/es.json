@@ -114,7 +114,8 @@
     "Features": "Features",
     "Pricing": "Precios",
     "Monitoring Reddit in real-time": "Monitorizando Reddit en tiempo real",
-    "Turn conversations into business opportunities": "Convierte conversaciones en oportunidades de negocio",
+    "Turn conversations into": "Convierte conversaciones en",
+    "business opportunities": "oportunidades de negocio",
     "business opportunities": "oportunidades de negocio",
     "ReplyRadar analyzes Reddit, detects real buyer intent, and delivers ranked actionable opportunities before your competition.": "ReplyRadar analiza Reddit, detecta intención de compra real y te entrega un ranking de oportunidades accionables antes que tu competencia.",
     "Start free, no card needed": "Empezar gratis, sin tarjeta",
@@ -152,6 +153,10 @@
     "Join early adopters using real intelligence to find opportunities on Reddit.": "Únete a los primeros usuarios que usan inteligencia real para encontrar oportunidades en Reddit.",
     "Create free account": "Crear cuenta gratis",
     "No card · 30-second setup": "Sin tarjeta · Setup en 30 segundos",
+    "researching subscription management platforms for a growing SaaS": "investigando plataformas de gestión de suscripciones para un SaaS en crecimiento",
+    "Is there a tool that detects buyer intent from Reddit posts?": "¿Hay una herramienta que detecte intención de compra en posts de Reddit?",
+    "what SaaS niche has terrible UX but insane retention?": "¿qué nicho SaaS tiene UX terrible pero retención increíble?",
+    "Is Micro SaaS a good side hustle in 2025?": "¿Es Micro SaaS un buen negocio secundario en 2025?",
     "Coming soon": "Próximamente",
     "ReplyRadar 2026": "ReplyRadar 2026",
 
@@ -201,5 +206,12 @@
 
     "keywords": "keywords",
     "posts": "posts",
-    "opportunities detected": "oportunidades detectadas"
+    "opportunities detected": "oportunidades detectadas",
+
+    "Unlock big opportunities for only": "Desbloquea las grandes oportunidades por solo",
+    "Offer for the first 100 users this week": "Oferta para los primeros 100 usuarios de esta semana",
+    "spots left": "plazas restantes",
+    "Upgrade now": "Mejorar ahora",
+    "Opportunities with +80 match": "Oportunidades con match +80",
+    "Everything in Pro": "Todo lo del plan Pro"
 }

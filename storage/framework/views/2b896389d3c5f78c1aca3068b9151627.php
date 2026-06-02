@@ -1,7 +1,7 @@
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['post']));
+$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['post', 'blurredIds' => collect([])]));
 
 foreach ($attributes->all() as $__key => $__value) {
     if (in_array($__key, $__propNames)) {
@@ -16,7 +16,7 @@ $attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
 unset($__propNames);
 unset($__newAttributes);
 
-foreach (array_filter((['post']), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
+foreach (array_filter((['post', 'blurredIds' => collect([])]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
 
@@ -28,15 +28,17 @@ foreach ($attributes->all() as $__key => $__value) {
 
 unset($__defined_vars, $__key, $__value); ?>
 
+<?php $isBlurred = $blurredIds->contains($post->id); ?>
+
 <?php
     $score = round($post->final_score);
     $intentScore = round($post->intent_score);
     $matchScore = round($post->match_score);
     $redditScore = $post->reddit_score ?? 0;
 
-    if ($score >= 80) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
-    elseif ($score >= 60) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
-    elseif ($score >= 40) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
+    if ($score >= 40) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
+    elseif ($score >= 25) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
+    elseif ($score >= 15) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
     else { $badge = [__('Cold'), 'bg-gray-500/20 text-gray-400 border-gray-500/20']; }
 
     if ($matchScore >= 80) { $fire = '🔥🔥🔥'; $fireClass = 'text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.6)]'; $fireBar = 'from-red-500 via-orange-400 to-yellow-300'; }
@@ -46,8 +48,20 @@ unset($__defined_vars, $__key, $__value); ?>
 ?>
 
 <div class="glass-card !p-5">
+    <?php if($isBlurred): ?>
+        <div class="flex items-center justify-between -mx-5 -mt-5 mb-4 px-5 py-2.5 bg-gradient-to-r from-indigo-600/30 to-purple-600/20 border-b border-white/10 rounded-t-xl">
+            <div class="flex items-center gap-2">
+                <span class="text-sm">🔒</span>
+                <span class="text-xs text-gray-300 font-medium"><?php echo e(__('Premium opportunity')); ?></span>
+            </div>
+            <a href="<?php echo e(route('billing.plans')); ?>"
+                class="text-xs text-indigo-300 hover:text-white font-medium transition-colors">
+                <?php echo e(__('Upgrade')); ?> →
+            </a>
+        </div>
+    <?php endif; ?>
     <div class="flex items-start justify-between gap-4">
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
             <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
                 class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
                 <?php echo e($post->title); ?>
@@ -75,19 +89,19 @@ unset($__defined_vars, $__key, $__value); ?>
 
                 </span>
             </div>
-            <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
                 <div class="h-full rounded-full bg-gradient-to-r <?php echo e($fireBar); ?>" style="width: <?php echo e($matchScore); ?>%"></div>
             </div>
         </div>
 
-        <div class="shrink-0">
+        <div class="shrink-0 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
             <span class="inline-flex items-center gap-1 rounded-full border text-[10px] px-2 py-0.5 font-medium <?php echo e($badge[1]); ?>">
                 <span class="font-bold"><?php echo e($score); ?></span>
             </span>
         </div>
     </div>
 
-    <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
+    <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
         <div class="text-center">
             <div class="text-xs text-gray-500"><?php echo e(__('Intent')); ?></div>
             <div class="text-sm font-semibold text-gray-200"><?php echo e($intentScore); ?></div>

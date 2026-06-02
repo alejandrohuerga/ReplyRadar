@@ -21,12 +21,18 @@ class DashboardController extends Controller
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);
 
+        $blurredIds = collect([]);
+        if ($user->plan === 'free') {
+            $blurredIds = $opportunities->where('match_score', '>', 79)->pluck('id');
+        }
+
         return view('dashboard.index', [
             'projects'      => $projects,
             'opportunities' => $opportunities,
+            'blurredIds'    => $blurredIds,
             'stats'         => [
                 'total_posts'    => $opportunities->count(),
-                'hot_count'      => $opportunities->where('final_score', '>=', 80)->count(),
+                'hot_count'      => $opportunities->where('final_score', '>=', 40)->count(),
                 'avg_score'      => round($opportunities->avg('final_score'), 1),
                 'top_subreddit'  => $opportunities->groupBy('subreddit')
                                     ->sortByDesc->count()->keys()->first(),

@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Billing
     Route::get('/billing/plans',    [BillingController::class, 'plans'])->name('billing.plans');
     Route::post('/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+    Route::post('/billing/promo-14', [BillingController::class, 'checkoutPromo14'])->name('billing.promo14');
     Route::get('/billing/success',  [BillingController::class, 'success'])->name('billing.success');
     Route::get('/billing/portal',   [BillingController::class, 'portal'])->name('billing.portal');
 

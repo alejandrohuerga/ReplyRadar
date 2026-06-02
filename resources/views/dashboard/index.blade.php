@@ -54,6 +54,31 @@
             <span class="text-sm text-gray-500" x-text="'{{ $opportunities->count() }} {{ __('results') }}'"></span>
         </div>
 
+        @if($blurredIds->isNotEmpty())
+            <div class="mb-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🚀</span>
+                    <div>
+                        <p class="text-sm text-amber-100 font-medium">{{ __('Unlock big opportunities for only') }} <span class="text-amber-300 font-bold">€14,99</span></p>
+                        <p class="text-xs text-amber-400/70">{{ __('Offer for the first 100 users this week') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-amber-300">22</div>
+                        <div class="text-[10px] text-amber-400/60 uppercase tracking-wider">{{ __('spots left') }}</div>
+                    </div>
+                    <form method="POST" action="{{ route('billing.promo14') }}" class="inline">
+                        @csrf
+                        <button type="submit"
+                            class="whitespace-nowrap text-sm glass-btn-primary !px-4 !py-2">
+                            {{ __('Upgrade now') }} →
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         {{-- Lista --}}
         <div class="grid gap-3">
             @forelse($opportunities as $post)
@@ -76,7 +101,7 @@
                         });
                     "
                 >
-                    <x-opportunity-card :post="$post" />
+                    <x-opportunity-card :post="$post" :blurred-ids="$blurredIds" />
                 </div>
             @empty
                 <div class="glass !p-12 text-center">
