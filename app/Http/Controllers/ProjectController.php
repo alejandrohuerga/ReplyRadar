@@ -59,7 +59,7 @@ class ProjectController extends Controller
 
         $blurredIds = collect([]);
         if ($request->user()->plan === 'free') {
-            $blurredIds = $posts->where('match_score', '>', 79)->pluck('id');
+            $blurredIds = $posts->take(5)->pluck('id');
         }
 
         return view('projects.show', [

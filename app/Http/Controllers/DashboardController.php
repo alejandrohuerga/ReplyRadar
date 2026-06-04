@@ -23,7 +23,7 @@ class DashboardController extends Controller
 
         $blurredIds = collect([]);
         if ($user->plan === 'free') {
-            $blurredIds = $opportunities->where('match_score', '>', 79)->pluck('id');
+            $blurredIds = $opportunities->take(5)->pluck('id');
         }
 
         return view('dashboard.index', [

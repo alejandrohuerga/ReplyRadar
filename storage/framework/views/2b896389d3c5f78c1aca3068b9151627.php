@@ -28,9 +28,9 @@ foreach ($attributes->all() as $__key => $__value) {
 
 unset($__defined_vars, $__key, $__value); ?>
 
-<?php $isBlurred = $blurredIds->contains($post->id); ?>
-
 <?php
+    $isBlurred = $blurredIds->contains($post->id);
+
     $score = round($post->final_score);
     $intentScore = round($post->intent_score);
     $matchScore = round($post->match_score);
@@ -47,82 +47,94 @@ unset($__defined_vars, $__key, $__value); ?>
     else { $fire = ''; $fireClass = 'text-gray-500'; $fireBar = 'from-gray-500 to-gray-400'; }
 ?>
 
-<div class="glass-card !p-5">
-    <?php if($isBlurred): ?>
-        <div class="flex items-center justify-between -mx-5 -mt-5 mb-4 px-5 py-2.5 bg-gradient-to-r from-indigo-600/30 to-purple-600/20 border-b border-white/10 rounded-t-xl">
-            <div class="flex items-center gap-2">
-                <span class="text-sm">🔒</span>
-                <span class="text-xs text-gray-300 font-medium"><?php echo e(__('Premium opportunity')); ?></span>
-            </div>
-            <a href="<?php echo e(route('billing.plans')); ?>"
-                class="text-xs text-indigo-300 hover:text-white font-medium transition-colors">
-                <?php echo e(__('Upgrade')); ?> →
-            </a>
-        </div>
-    <?php endif; ?>
-    <div class="flex items-start justify-between gap-4">
-        <div class="flex-1 min-w-0 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
-            <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
-                class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
-                <?php echo e($post->title); ?>
+<?php if($isBlurred): ?>
+    <a href="<?php echo e(route('billing.plans')); ?>"
+        class="glass-card !p-5 block group hover:bg-white/[0.07] transition-all cursor-pointer">
+        <div class="flex flex-col items-center justify-center py-5 text-center">
+            <span class="text-3xl mb-1 block">⭐</span>
+            <span class="text-sm font-bold text-white block"><?php echo e(__('Premium')); ?></span>
+            <span class="text-xs text-gray-400 block"><?php echo e(__('Members only')); ?></span>
+            <div class="flex items-center gap-4 mt-3">
+                <div class="text-lg leading-none <?php echo e($fireClass); ?>"><?php echo e($fire); ?></div>
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><?php echo e(__('Match')); ?></span>
+                    <span class="text-sm font-extrabold <?php echo e($matchScore >= 60 ? 'text-white' : ($matchScore >= 40 ? 'text-yellow-300' : 'text-gray-400')); ?>">
+                        <?php echo e($matchScore); ?>
 
-            </a>
-            <div class="flex items-center gap-3 mt-2 flex-wrap">
-                <span class="text-xs text-indigo-400 font-medium">r/<?php echo e($post->subreddit); ?></span>
-                <span class="text-xs text-gray-500">↑ <?php echo e($redditScore); ?></span>
-                <span class="text-xs text-gray-500">💬 <?php echo e($post->num_comments ?? 0); ?></span>
-                <?php if($post->posted_at): ?>
-                    <span class="text-xs text-gray-500"><?php echo e(\Carbon\Carbon::parse($post->posted_at)->locale(app()->getLocale())->isoFormat('D MMM YYYY')); ?></span>
-                <?php endif; ?>
+                    </span>
+                </div>
+                <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-gradient-to-r <?php echo e($fireBar); ?>" style="width: <?php echo e($matchScore); ?>%"></div>
+                </div>
             </div>
         </div>
+    </a>
+<?php else: ?>
+    <div class="glass-card !p-5">
+        <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+                <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
+                    class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
+                    <?php echo e($post->title); ?>
 
-        <div class="shrink-0 flex flex-col items-center gap-1">
-            <div class="text-lg leading-none <?php echo e($fireClass); ?> transition-all duration-300">
-                <?php echo e($fire); ?>
-
+                </a>
+                <div class="flex items-center gap-3 mt-2 flex-wrap">
+                    <span class="text-xs text-indigo-400 font-medium">r/<?php echo e($post->subreddit); ?></span>
+                    <span class="text-xs text-gray-500">↑ <?php echo e($redditScore); ?></span>
+                    <span class="text-xs text-gray-500">💬 <?php echo e($post->num_comments ?? 0); ?></span>
+                    <?php if($post->posted_at): ?>
+                        <span class="text-xs text-gray-500"><?php echo e(\Carbon\Carbon::parse($post->posted_at)->locale(app()->getLocale())->isoFormat('D MMM YYYY')); ?></span>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="flex items-center gap-1">
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><?php echo e(__('Match')); ?></span>
-                <span class="text-sm font-extrabold <?php echo e($matchScore >= 60 ? 'text-white' : ($matchScore >= 40 ? 'text-yellow-300' : 'text-gray-400')); ?>">
-                    <?php echo e($matchScore); ?>
 
+            <div class="shrink-0">
+                <span class="inline-flex items-center gap-1 rounded-full border text-[10px] px-2 py-0.5 font-medium <?php echo e($badge[1]); ?>">
+                    <span class="font-bold"><?php echo e($score); ?></span>
                 </span>
             </div>
-            <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
-                <div class="h-full rounded-full bg-gradient-to-r <?php echo e($fireBar); ?>" style="width: <?php echo e($matchScore); ?>%"></div>
+
+            <div class="shrink-0 flex flex-col items-center gap-1">
+                <div class="text-lg leading-none <?php echo e($fireClass); ?> transition-all duration-300">
+                    <?php echo e($fire); ?>
+
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><?php echo e(__('Match')); ?></span>
+                    <span class="text-sm font-extrabold <?php echo e($matchScore >= 60 ? 'text-white' : ($matchScore >= 40 ? 'text-yellow-300' : 'text-gray-400')); ?>">
+                        <?php echo e($matchScore); ?>
+
+                    </span>
+                </div>
+                <div class="w-16 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-gradient-to-r <?php echo e($fireBar); ?>" style="width: <?php echo e($matchScore); ?>%"></div>
+                </div>
             </div>
         </div>
 
-        <div class="shrink-0 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
-            <span class="inline-flex items-center gap-1 rounded-full border text-[10px] px-2 py-0.5 font-medium <?php echo e($badge[1]); ?>">
-                <span class="font-bold"><?php echo e($score); ?></span>
-            </span>
-        </div>
-    </div>
-
-    <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 <?php echo e($isBlurred ? 'blur-sm' : ''); ?>">
-        <div class="text-center">
-            <div class="text-xs text-gray-500"><?php echo e(__('Intent')); ?></div>
-            <div class="text-sm font-semibold text-gray-200"><?php echo e($intentScore); ?></div>
-            <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width: <?php echo e($intentScore); ?>%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+        <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
+            <div class="text-center">
+                <div class="text-xs text-gray-500"><?php echo e(__('Intent')); ?></div>
+                <div class="text-sm font-semibold text-gray-200"><?php echo e($intentScore); ?></div>
+                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width: <?php echo e($intentScore); ?>%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+                </div>
             </div>
-        </div>
-        <div class="text-center">
-            <div class="text-xs text-gray-500"><?php echo e(__('Match')); ?></div>
-            <div class="text-sm font-semibold text-gray-200"><?php echo e($matchScore); ?></div>
-            <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width: <?php echo e($matchScore); ?>%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
+            <div class="text-center">
+                <div class="text-xs text-gray-500"><?php echo e(__('Match')); ?></div>
+                <div class="text-sm font-semibold text-gray-200"><?php echo e($matchScore); ?></div>
+                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width: <?php echo e($matchScore); ?>%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
+                </div>
             </div>
-        </div>
-        <div class="text-center">
-            <div class="text-xs text-gray-500"><?php echo e(__('Engagement')); ?></div>
-            <div class="text-sm font-semibold text-gray-200"><?php echo e($redditScore); ?></div>
-            <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width: <?php echo e(min(100, $redditScore * 2)); ?>%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
+            <div class="text-center">
+                <div class="text-xs text-gray-500"><?php echo e(__('Engagement')); ?></div>
+                <div class="text-sm font-semibold text-gray-200"><?php echo e($redditScore); ?></div>
+                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width: <?php echo e(min(100, $redditScore * 2)); ?>%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+<?php endif; ?>
 <?php /**PATH C:\laragon\www\ReplyRadar\resources\views/components/opportunity-card.blade.php ENDPATH**/ ?>
