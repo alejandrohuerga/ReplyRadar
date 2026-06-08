@@ -52,7 +52,9 @@ class ProjectController extends Controller
             ->orderByDesc($sortColumn)
             ->limit(100)
             ->get([
-                'id', 'title', 'subreddit', 'url', 'author',
+                'id', 'title', 'title_es', 'title_en',
+                'content', 'content_es', 'content_en',
+                'subreddit', 'url', 'author',
                 'reddit_score', 'num_comments', 'intent_score',
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);

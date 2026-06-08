@@ -75,7 +75,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <div class="flex-1 min-w-0">
                 <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
                     class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
-                    <?php echo e($post->title); ?>
+                    <?php echo e($post->localized_title); ?>
 
                 </a>
                 <div class="flex items-center gap-3 mt-2 flex-wrap">

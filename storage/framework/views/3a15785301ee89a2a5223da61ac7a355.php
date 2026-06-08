@@ -94,7 +94,7 @@
                             show = (val === 'all' || (val === 'hot' && <?php echo e($isHot ? 'true' : 'false'); ?>) || (val === 'warm' && <?php echo e($isWarm ? 'true' : 'false'); ?>));
                         });
                         $watch('search', val => {
-                            const t = '<?php echo e(addslashes($post->title)); ?>'.toLowerCase();
+                            const t = '<?php echo e(addslashes($post->localized_title)); ?>'.toLowerCase();
                             const s = '<?php echo e(addslashes($post->subreddit)); ?>'.toLowerCase();
                             show = (t.includes(val.toLowerCase()) || s.includes(val.toLowerCase())) &&
                                 (filter === 'all' || (filter === 'hot' && <?php echo e($isHot ? 'true' : 'false'); ?>) || (filter === 'warm' && <?php echo e($isWarm ? 'true' : 'false'); ?>));

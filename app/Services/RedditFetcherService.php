@@ -3,28 +3,32 @@ namespace App\Services;
 
 use App\Models\Keyword;
 use App\Models\Post;
+use App\Services\ContentTranslationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RedditFetcherService
 {
-    private IntentScoringService   $intentScorer;
-    private KeywordMatchingService $keywordMatcher;
-    private FinalScoreService      $finalScorer;
+    private IntentScoringService      $intentScorer;
+    private KeywordMatchingService    $keywordMatcher;
+    private FinalScoreService         $finalScorer;
+    private ContentTranslationService $translator;
 
     private array   $seenHashes = [];
     private ?string $accessToken = null;
     private ?Carbon $tokenExpiresAt = null;
 
     public function __construct(
-        IntentScoringService   $intentScorer,
-        KeywordMatchingService $keywordMatcher,
-        FinalScoreService      $finalScorer,
+        IntentScoringService      $intentScorer,
+        KeywordMatchingService    $keywordMatcher,
+        FinalScoreService         $finalScorer,
+        ContentTranslationService $translator,
     ) {
         $this->intentScorer    = $intentScorer;
         $this->keywordMatcher  = $keywordMatcher;
         $this->finalScorer     = $finalScorer;
+        $this->translator      = $translator;
     }
 
     public function fetchForKeyword(Keyword $keyword): int
@@ -314,12 +318,21 @@ class RedditFetcherService
             opEngaged: false,
         );
 
+        $titleEn = $this->translator->translateToEnglish($title);
+        $contentEn = $this->translator->translateToEnglish(substr($content, 0, 5000));
+        $titleEs = $this->translator->translateToSpanish($title);
+        $contentEs = $this->translator->translateToSpanish(substr($content, 0, 5000));
+
         try {
             Post::create([
                 'keyword_id'       => $keyword->id,
                 'external_id'      => $externalId,
                 'title'            => $title,
                 'content'          => substr($content, 0, 5000),
+                'title_en'         => ($titleEn !== $title) ? $titleEn : null,
+                'content_en'       => ($contentEn !== $content) ? $contentEn : null,
+                'title_es'         => ($titleEs !== $title) ? $titleEs : null,
+                'content_es'       => ($contentEs !== $content) ? $contentEs : null,
                 'subreddit'        => $data['subreddit'] ?? '',
                 'url'              => $data['url'] ?? ('https://reddit.com' . ($data['permalink'] ?? '')),
                 'author'           => $author,

@@ -94,7 +94,7 @@
                             show = (val === 'all' || (val === 'hot' && {{ $isHot ? 'true' : 'false' }}) || (val === 'warm' && {{ $isWarm ? 'true' : 'false' }}));
                         });
                         $watch('search', val => {
-                            const t = '{{ addslashes($post->title) }}'.toLowerCase();
+                            const t = '{{ addslashes($post->localized_title) }}'.toLowerCase();
                             const s = '{{ addslashes($post->subreddit) }}'.toLowerCase();
                             show = (t.includes(val.toLowerCase()) || s.includes(val.toLowerCase())) &&
                                 (filter === 'all' || (filter === 'hot' && {{ $isHot ? 'true' : 'false' }}) || (filter === 'warm' && {{ $isWarm ? 'true' : 'false' }}));
