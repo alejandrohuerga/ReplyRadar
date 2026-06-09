@@ -86,6 +86,13 @@ unset($__errorArgs, $__bag); ?>
                             <option value="posted_at" <?php echo e(request('sort') === 'posted_at' ? 'selected' : ''); ?>><?php echo e(__('Sort by date')); ?></option>
                         </select>
                     </form>
+                    <form method="POST" action="<?php echo e(route('projects.refresh', $project)); ?>" class="inline">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" class="glass-btn-primary !px-3 !py-1.5 text-sm whitespace-nowrap">
+                            🔄 <?php echo e(__('Refresh')); ?>
+
+                        </button>
+                    </form>
                     <?php if($canExport): ?>
                         <a href="<?php echo e(route('export.posts', ['project_id' => $project->id])); ?>"
                             class="glass-btn-primary !px-4 !py-1.5 text-sm">

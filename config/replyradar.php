@@ -26,6 +26,22 @@ return [
         ],
     ],
 
+    'twitter' => [
+        'enabled'          => env('TWITTER_ENABLED', false),
+        'bearer_token'     => env('TWITTER_BEARER_TOKEN'),
+        'api_key'          => env('TWITTER_API_KEY'),
+        'api_secret'       => env('TWITTER_API_SECRET'),
+        'access_token'     => env('TWITTER_ACCESS_TOKEN'),
+        'access_secret'    => env('TWITTER_ACCESS_SECRET'),
+        'per_keyword'      => 25,
+    ],
+
+    'mastodon' => [
+        'enabled'     => env('MASTODON_ENABLED', true),
+        'instance'    => env('MASTODON_INSTANCE', 'mastodon.social'),
+        'per_keyword' => 25,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Scoring Weights
@@ -56,7 +72,7 @@ return [
         'base_url'               => 'https://www.reddit.com',
         'user_agent'             => 'ReplyRadar/2.0 (business opportunity detector)',
         'per_mode'               => 25,
-        'sort_modes'             => ['relevance', 'new', 'hot'],
+        'sort_modes'             => ['relevance'],
         'dedup_hash'             => true,
         'fetch_comments'         => false,
         'comments_per_post'      => 30,

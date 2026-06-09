@@ -2,6 +2,8 @@
 
 @php
     $isBlurred = $blurredIds->contains($post->id);
+    $isTwitter = ($post->source ?? 'reddit') === 'twitter';
+    $isMastodon = ($post->source ?? 'reddit') === 'mastodon';
 
     $score = round($post->final_score);
     $intentScore = round($post->intent_score);
@@ -47,14 +49,35 @@
     <div class="glass-card !p-5">
         <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
-                <a href="{{ $post->url }}" target="_blank" rel="noopener noreferrer"
-                    class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
-                    {{ $post->localized_title }}
-                </a>
+                <div class="flex items-center gap-2">
+                    @if($isTwitter)
+                        <span class="shrink-0 text-[10px] font-bold text-sky-400 bg-sky-500/10 rounded px-1.5 py-0.5">{{ __('X') }}</span>
+                    @elseif($isMastodon)
+                        <span class="shrink-0 text-[10px] font-bold text-purple-400 bg-purple-500/10 rounded px-1.5 py-0.5">Mastodon</span>
+                    @else
+                        <span class="shrink-0 text-[10px] font-bold text-indigo-400 bg-indigo-500/10 rounded px-1.5 py-0.5">Reddit</span>
+                    @endif
+                    <a href="{{ $post->url }}" target="_blank" rel="noopener noreferrer"
+                        class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
+                        {{ $post->localized_title }}
+                    </a>
+                </div>
                 <div class="flex items-center gap-3 mt-2 flex-wrap">
-                    <span class="text-xs text-indigo-400 font-medium">r/{{ $post->subreddit }}</span>
-                    <span class="text-xs text-gray-500">↑ {{ $redditScore }}</span>
-                    <span class="text-xs text-gray-500">💬 {{ $post->num_comments ?? 0 }}</span>
+                    @if($isTwitter)
+                        <span class="text-xs text-sky-400 font-medium">{{ $post->author_handle ?? __('Twitter') }}</span>
+                        <span class="text-xs text-gray-500">♥ {{ $post->like_count ?? 0 }}</span>
+                        <span class="text-xs text-gray-500">🔁 {{ $post->retweet_count ?? 0 }}</span>
+                        <span class="text-xs text-gray-500">💬 {{ $post->reply_count ?? 0 }}</span>
+                    @elseif($isMastodon)
+                        <span class="text-xs text-purple-400 font-medium">{{ $post->author_handle ?? __('Mastodon') }}</span>
+                        <span class="text-xs text-gray-500">⭐ {{ $post->like_count ?? 0 }}</span>
+                        <span class="text-xs text-gray-500">🔁 {{ $post->retweet_count ?? 0 }}</span>
+                        <span class="text-xs text-gray-500">💬 {{ $post->reply_count ?? 0 }}</span>
+                    @else
+                        <span class="text-xs text-indigo-400 font-medium">r/{{ $post->subreddit }}</span>
+                        <span class="text-xs text-gray-500">↑ {{ $redditScore }}</span>
+                        <span class="text-xs text-gray-500">💬 {{ $post->num_comments ?? 0 }}</span>
+                    @endif
                     @if($post->posted_at)
                         <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($post->posted_at)->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}</span>
                     @endif
@@ -83,28 +106,32 @@
             </div>
         </div>
 
-        <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
-            <div class="text-center">
-                <div class="text-xs text-gray-500">{{ __('Intent') }}</div>
-                <div class="text-sm font-semibold text-gray-200">{{ $intentScore }}</div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: {{ $intentScore }}%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+            <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
+                <div class="text-center">
+                    <div class="text-xs text-gray-500">{{ __('Intent') }}</div>
+                    <div class="text-sm font-semibold text-gray-200">{{ $intentScore }}</div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: {{ $intentScore }}%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-gray-500">{{ __('Match') }}</div>
+                    <div class="text-sm font-semibold text-gray-200">{{ $matchScore }}</div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: {{ $matchScore }}%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    @php
+                        $isSocial = $isTwitter || $isMastodon;
+                        $likes = $isSocial ? ($post->like_count ?? 0) : $redditScore;
+                    @endphp
+                    <div class="text-xs text-gray-500">{{ $isSocial ? __('Likes') : __('Engagement') }}</div>
+                    <div class="text-sm font-semibold text-gray-200">{{ $likes }}</div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: {{ min(100, $likes * 2) }}%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
+                    </div>
                 </div>
             </div>
-            <div class="text-center">
-                <div class="text-xs text-gray-500">{{ __('Match') }}</div>
-                <div class="text-sm font-semibold text-gray-200">{{ $matchScore }}</div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: {{ $matchScore }}%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
-                </div>
-            </div>
-            <div class="text-center">
-                <div class="text-xs text-gray-500">{{ __('Engagement') }}</div>
-                <div class="text-sm font-semibold text-gray-200">{{ $redditScore }}</div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: {{ min(100, $redditScore * 2) }}%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
-                </div>
-            </div>
-        </div>
     </div>
 @endif

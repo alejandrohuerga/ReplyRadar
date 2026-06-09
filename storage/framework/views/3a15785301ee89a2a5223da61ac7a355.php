@@ -44,7 +44,7 @@
             </a>
         </div>
     <?php else: ?>
-        <div x-data="{ filter: 'all', search: '' }">
+        <div x-data="{ filter: 'all', source: 'all', search: '' }">
         
         <div class="flex items-center gap-3 mb-4 flex-wrap">
             <input type="text" placeholder="<?php echo e(__('Search opportunities...')); ?>" x-model="search"
@@ -52,7 +52,45 @@
             <button @click="filter = 'all'" :class="filter === 'all' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm"><?php echo e(__('All')); ?></button>
             <button @click="filter = 'hot'" :class="filter === 'hot' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm">🔥 <?php echo e(__('Hot')); ?></button>
             <button @click="filter = 'warm'" :class="filter === 'warm' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm">⚡ <?php echo e(__('Warm')); ?></button>
+            <span class="w-px h-6 bg-white/10"></span>
+            <button @click="source = 'all'" :class="source === 'all' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm"><?php echo e(__('All sources')); ?></button>
+            <button @click="source = 'reddit'" :class="source === 'reddit' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm">
+                <span class="text-indigo-400 font-bold">Reddit</span>
+            </button>
+            <button @click="source = 'mastodon'" :class="source === 'mastodon' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm">
+                <span class="text-purple-400 font-bold">Mastodon</span>
+            </button>
+            <div x-data="{ open: false, selected: '<?php echo e($sort); ?>' }" class="relative ml-auto">
+                <button @click="open = !open" type="button"
+                    class="glass-input text-sm !py-1.5 !px-3 flex items-center gap-2 min-w-[130px] cursor-pointer whitespace-nowrap">
+                    <span x-text="selected === 'final_score' ? '<?php echo e(__('By score')); ?>' : '<?php echo e(__('By match')); ?>'"></span>
+                    <span class="ml-auto text-gray-500">▾</span>
+                </button>
+                <div x-show="open" @click.outside="open = false"
+                    class="absolute right-0 mt-1 w-full min-w-[140px] rounded-xl bg-black border border-white/10 shadow-xl z-50 overflow-hidden"
+                    style="display: none;">
+                    <button @click="selected='final_score'; open=false; window.location='<?php echo e(route('dashboard')); ?>?sort=final_score'"
+                        class="block w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+                        :class="selected === 'final_score' ? 'bg-white/10' : ''">
+                        <?php echo e(__('By score')); ?>
+
+                    </button>
+                    <button @click="selected='match_score'; open=false; window.location='<?php echo e(route('dashboard')); ?>?sort=match_score'"
+                        class="block w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+                        :class="selected === 'match_score' ? 'bg-white/10' : ''">
+                        <?php echo e(__('By match')); ?>
+
+                    </button>
+                </div>
+            </div>
             <span class="text-sm text-gray-500" x-text="'<?php echo e($opportunities->count()); ?> <?php echo e(__('results')); ?>'"></span>
+            <form method="POST" action="<?php echo e(route('dashboard.refresh')); ?>" class="inline">
+                <?php echo csrf_field(); ?>
+                <button type="submit" class="glass-btn-primary !px-3 !py-1.5 text-sm whitespace-nowrap">
+                    🔄 <?php echo e(__('Refresh')); ?>
+
+                </button>
+            </form>
         </div>
 
         <?php if($blurredIds->isNotEmpty()): ?>
@@ -91,11 +129,15 @@
                     x-show='
                         (search === "" ||
                          <?php echo json_encode($post->localized_title, 15, 512) ?>.toLowerCase().includes(search.toLowerCase()) ||
-                         <?php echo json_encode($post->subreddit, 15, 512) ?>.toLowerCase().includes(search.toLowerCase())
+                         <?php echo json_encode($post->subreddit, 15, 512) ?>.toLowerCase().includes(search.toLowerCase()) ||
+                         <?php echo json_encode($post->source ?? 'reddit', 15, 512) ?>.toLowerCase().includes(search.toLowerCase())
                         ) &&
                         (filter === "all" ||
                          (filter === "hot" && <?php echo e($isHot ? 'true' : 'false'); ?>) ||
                          (filter === "warm" && <?php echo e($isWarm ? 'true' : 'false'); ?>)
+                        ) &&
+                        (source === "all" ||
+                         source === <?php echo json_encode($post->source ?? 'reddit', 15, 512) ?>
                         )
                     '
                 >

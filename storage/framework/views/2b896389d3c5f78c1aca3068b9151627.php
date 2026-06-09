@@ -30,6 +30,8 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <?php
     $isBlurred = $blurredIds->contains($post->id);
+    $isTwitter = ($post->source ?? 'reddit') === 'twitter';
+    $isMastodon = ($post->source ?? 'reddit') === 'mastodon';
 
     $score = round($post->final_score);
     $intentScore = round($post->intent_score);
@@ -76,15 +78,36 @@ unset($__defined_vars, $__key, $__value); ?>
     <div class="glass-card !p-5">
         <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
-                <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
-                    class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
-                    <?php echo e($post->localized_title); ?>
+                <div class="flex items-center gap-2">
+                    <?php if($isTwitter): ?>
+                        <span class="shrink-0 text-[10px] font-bold text-sky-400 bg-sky-500/10 rounded px-1.5 py-0.5"><?php echo e(__('X')); ?></span>
+                    <?php elseif($isMastodon): ?>
+                        <span class="shrink-0 text-[10px] font-bold text-purple-400 bg-purple-500/10 rounded px-1.5 py-0.5">Mastodon</span>
+                    <?php else: ?>
+                        <span class="shrink-0 text-[10px] font-bold text-indigo-400 bg-indigo-500/10 rounded px-1.5 py-0.5">Reddit</span>
+                    <?php endif; ?>
+                    <a href="<?php echo e($post->url); ?>" target="_blank" rel="noopener noreferrer"
+                        class="text-sm font-medium text-gray-100 hover:text-indigo-400 line-clamp-2 transition-colors">
+                        <?php echo e($post->localized_title); ?>
 
-                </a>
+                    </a>
+                </div>
                 <div class="flex items-center gap-3 mt-2 flex-wrap">
-                    <span class="text-xs text-indigo-400 font-medium">r/<?php echo e($post->subreddit); ?></span>
-                    <span class="text-xs text-gray-500">↑ <?php echo e($redditScore); ?></span>
-                    <span class="text-xs text-gray-500">💬 <?php echo e($post->num_comments ?? 0); ?></span>
+                    <?php if($isTwitter): ?>
+                        <span class="text-xs text-sky-400 font-medium"><?php echo e($post->author_handle ?? __('Twitter')); ?></span>
+                        <span class="text-xs text-gray-500">♥ <?php echo e($post->like_count ?? 0); ?></span>
+                        <span class="text-xs text-gray-500">🔁 <?php echo e($post->retweet_count ?? 0); ?></span>
+                        <span class="text-xs text-gray-500">💬 <?php echo e($post->reply_count ?? 0); ?></span>
+                    <?php elseif($isMastodon): ?>
+                        <span class="text-xs text-purple-400 font-medium"><?php echo e($post->author_handle ?? __('Mastodon')); ?></span>
+                        <span class="text-xs text-gray-500">⭐ <?php echo e($post->like_count ?? 0); ?></span>
+                        <span class="text-xs text-gray-500">🔁 <?php echo e($post->retweet_count ?? 0); ?></span>
+                        <span class="text-xs text-gray-500">💬 <?php echo e($post->reply_count ?? 0); ?></span>
+                    <?php else: ?>
+                        <span class="text-xs text-indigo-400 font-medium">r/<?php echo e($post->subreddit); ?></span>
+                        <span class="text-xs text-gray-500">↑ <?php echo e($redditScore); ?></span>
+                        <span class="text-xs text-gray-500">💬 <?php echo e($post->num_comments ?? 0); ?></span>
+                    <?php endif; ?>
                     <?php if($post->posted_at): ?>
                         <span class="text-xs text-gray-500"><?php echo e(\Carbon\Carbon::parse($post->posted_at)->locale(app()->getLocale())->isoFormat('D MMM YYYY')); ?></span>
                     <?php endif; ?>
@@ -115,29 +138,33 @@ unset($__defined_vars, $__key, $__value); ?>
             </div>
         </div>
 
-        <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
-            <div class="text-center">
-                <div class="text-xs text-gray-500"><?php echo e(__('Intent')); ?></div>
-                <div class="text-sm font-semibold text-gray-200"><?php echo e($intentScore); ?></div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: <?php echo e($intentScore); ?>%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+            <div class="mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2">
+                <div class="text-center">
+                    <div class="text-xs text-gray-500"><?php echo e(__('Intent')); ?></div>
+                    <div class="text-sm font-semibold text-gray-200"><?php echo e($intentScore); ?></div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: <?php echo e($intentScore); ?>%; background: linear-gradient(90deg, #6366f1, #818cf8)"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-gray-500"><?php echo e(__('Match')); ?></div>
+                    <div class="text-sm font-semibold text-gray-200"><?php echo e($matchScore); ?></div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: <?php echo e($matchScore); ?>%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <?php
+                        $isSocial = $isTwitter || $isMastodon;
+                        $likes = $isSocial ? ($post->like_count ?? 0) : $redditScore;
+                    ?>
+                    <div class="text-xs text-gray-500"><?php echo e($isSocial ? __('Likes') : __('Engagement')); ?></div>
+                    <div class="text-sm font-semibold text-gray-200"><?php echo e($likes); ?></div>
+                    <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width: <?php echo e(min(100, $likes * 2)); ?>%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
+                    </div>
                 </div>
             </div>
-            <div class="text-center">
-                <div class="text-xs text-gray-500"><?php echo e(__('Match')); ?></div>
-                <div class="text-sm font-semibold text-gray-200"><?php echo e($matchScore); ?></div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: <?php echo e($matchScore); ?>%; background: linear-gradient(90deg, #a855f7, #c084fc)"></div>
-                </div>
-            </div>
-            <div class="text-center">
-                <div class="text-xs text-gray-500"><?php echo e(__('Engagement')); ?></div>
-                <div class="text-sm font-semibold text-gray-200"><?php echo e($redditScore); ?></div>
-                <div class="mt-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width: <?php echo e(min(100, $redditScore * 2)); ?>%; background: linear-gradient(90deg, #f97316, #fb923c)"></div>
-                </div>
-            </div>
-        </div>
     </div>
 <?php endif; ?>
 <?php /**PATH C:\laragon\www\ReplyRadar\resources\views/components/opportunity-card.blade.php ENDPATH**/ ?>

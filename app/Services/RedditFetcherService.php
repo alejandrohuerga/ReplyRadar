@@ -54,7 +54,6 @@ class RedditFetcherService
                 }
 
                 $allPostData = array_merge($allPostData, $parsed);
-                usleep(500000);
 
             } catch (\Exception $e) {
                 Log::error("Reddit fetch exception [{$sort}]: {$e->getMessage()}");
@@ -89,7 +88,7 @@ class RedditFetcherService
         $response = Http::withHeaders([
             'Authorization' => "Bearer {$token}",
             'User-Agent'    => $config['user_agent'],
-        ])->timeout(15)->get('https://oauth.reddit.com/search', [
+        ])->timeout(8)->get('https://oauth.reddit.com/search', [
             'q'        => $term,
             'sort'     => $sort,
             'limit'    => $limit,
@@ -109,7 +108,7 @@ class RedditFetcherService
     {
         $response = Http::withHeaders([
             'User-Agent' => $config['user_agent'],
-        ])->timeout(15)->get('https://www.reddit.com/search.rss', [
+        ])->timeout(8)->get('https://www.reddit.com/search.rss', [
             'q'     => $term,
             'sort'  => $sort,
             'limit' => $limit,
@@ -318,10 +317,10 @@ class RedditFetcherService
             opEngaged: false,
         );
 
-        $titleEn = $this->translator->translateToEnglish($title);
-        $contentEn = $this->translator->translateToEnglish(substr($content, 0, 5000));
-        $titleEs = $this->translator->translateToSpanish($title);
-        $contentEs = $this->translator->translateToSpanish(substr($content, 0, 5000));
+        $locale = app()->getLocale();
+        $titleEn = $locale !== 'en' ? $this->translator->translateToEnglish($title) : null;
+        $titleEs = $locale !== 'es' ? $this->translator->translateToSpanish($title) : null;
+        $contentEs = $locale === 'es' ? $this->translator->translateToSpanish(substr($content, 0, 5000)) : null;
 
         try {
             Post::create([
@@ -329,9 +328,9 @@ class RedditFetcherService
                 'external_id'      => $externalId,
                 'title'            => $title,
                 'content'          => substr($content, 0, 5000),
-                'title_en'         => ($titleEn !== $title) ? $titleEn : null,
-                'content_en'       => ($contentEn !== $content) ? $contentEn : null,
-                'title_es'         => ($titleEs !== $title) ? $titleEs : null,
+                'title_en'         => $titleEn,
+                'content_en'       => null,
+                'title_es'         => $titleEs,
                 'content_es'       => ($contentEs !== $content) ? $contentEs : null,
                 'subreddit'        => $data['subreddit'] ?? '',
                 'url'              => $data['url'] ?? ('https://reddit.com' . ($data['permalink'] ?? '')),

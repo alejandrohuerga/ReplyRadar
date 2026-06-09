@@ -76,6 +76,12 @@
                             <option value="posted_at" {{ request('sort') === 'posted_at' ? 'selected' : '' }}>{{ __('Sort by date') }}</option>
                         </select>
                     </form>
+                    <form method="POST" action="{{ route('projects.refresh', $project) }}" class="inline">
+                        @csrf
+                        <button type="submit" class="glass-btn-primary !px-3 !py-1.5 text-sm whitespace-nowrap">
+                            🔄 {{ __('Refresh') }}
+                        </button>
+                    </form>
                     @if($canExport)
                         <a href="{{ route('export.posts', ['project_id' => $project->id]) }}"
                             class="glass-btn-primary !px-4 !py-1.5 text-sm">

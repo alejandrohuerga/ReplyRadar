@@ -13,6 +13,8 @@ class Post extends Model
         'match_score', 'engagement_score', 'urgency_score',
         'depth_score', 'freshness_score', 'competition_score',
         'op_engaged', 'final_score', 'content_hash', 'posted_at',
+        'source', 'like_count', 'retweet_count', 'reply_count',
+        'author_handle', 'author_followers',
     ];
 
     public function getLocalizedTitleAttribute(): string

@@ -10,10 +10,13 @@ class DashboardController extends Controller
         $user     = $request->user();
         $projects = $user->projects()->with('keywords')->get();
 
+        $sort = $request->input('sort', 'final_score');
+        $sortColumn = in_array($sort, ['final_score', 'match_score', 'posted_at']) ? $sort : 'final_score';
+
         $opportunities = \App\Models\Post::whereHas('keyword.project', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-            ->orderByDesc('final_score')
+            ->orderByDesc($sortColumn)
             ->limit(50)
             ->get([
                 'id', 'title', 'title_es', 'title_en',
@@ -21,6 +24,8 @@ class DashboardController extends Controller
                 'subreddit', 'url', 'author',
                 'reddit_score', 'num_comments', 'intent_score',
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
+                'source', 'like_count', 'retweet_count', 'reply_count',
+                'author_handle', 'author_followers',
             ]);
 
         $blurredIds = collect([]);
@@ -38,6 +43,7 @@ class DashboardController extends Controller
             'projects'      => $projects,
             'opportunities' => $opportunities,
             'blurredIds'    => $blurredIds,
+            'sort'          => $sort,
             'stats'         => [
                 'total_posts'    => $opportunities->count(),
                 'hot_count'      => $opportunities->where('final_score', '>=', 60)->count(),
@@ -46,5 +52,25 @@ class DashboardController extends Controller
                                     ->sortByDesc->count()->keys()->first(),
             ],
         ]);
+    }
+
+    public function refresh(Request $request)
+    {
+        $php = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $cmd = "\"{$php}\" \"{$artisan}\" fetch:reddit-posts --quiet";
+
+        if (class_exists('COM')) {
+            try {
+                $wsh = new COM('WScript.Shell');
+                $wsh->Run($cmd, 0, false);
+            } catch (\Exception $e) {
+                pclose(popen($cmd, "r"));
+            }
+        } else {
+            pclose(popen($cmd, "r"));
+        }
+
+        return back()->with('success', __('Refresh started — posts will appear in a moment.'));
     }
 }
