@@ -20,7 +20,7 @@
             <div class="text-xl font-bold text-white">{{ $stats['total_posts'] }}</div>
         </div>
         <div class="glass !p-4">
-            <div class="text-xs text-gray-500 mb-1">{{ __('Hot (score 80+)') }}</div>
+            <div class="text-xs text-gray-500 mb-1">{{ __('Hot') }}</div>
             <div class="text-xl font-bold text-red-400">{{ $stats['hot_count'] }}</div>
         </div>
         <div class="glass !p-4">
@@ -44,8 +44,9 @@
             </a>
         </div>
     @else
+        <div x-data="{ filter: 'all', search: '' }">
         {{-- Filtros + búsqueda --}}
-        <div class="flex items-center gap-3 mb-4 flex-wrap" x-data="{ filter: 'all', search: '' }">
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
             <input type="text" placeholder="{{ __('Search opportunities...') }}" x-model="search"
                 class="glass-input flex-1 min-w-48 text-sm">
             <button @click="filter = 'all'" :class="filter === 'all' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm">{{ __('All') }}</button>
@@ -83,23 +84,20 @@
         <div class="grid gap-3">
             @forelse($opportunities as $post)
                 @php
-                    $isHot = $post->final_score >= 80;
-                    $isWarm = $post->final_score >= 60 && $post->final_score < 80;
+                    $isHot = $post->final_score >= 60;
+                    $isWarm = $post->final_score >= 40 && $post->final_score < 60;
                 @endphp
                 <div class="dashboard-post"
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-init="
-                        $watch('filter', val => {
-                            show = (val === 'all' || (val === 'hot' && {{ $isHot ? 'true' : 'false' }}) || (val === 'warm' && {{ $isWarm ? 'true' : 'false' }}));
-                        });
-                        $watch('search', val => {
-                            const t = '{{ addslashes($post->localized_title) }}'.toLowerCase();
-                            const s = '{{ addslashes($post->subreddit) }}'.toLowerCase();
-                            show = (t.includes(val.toLowerCase()) || s.includes(val.toLowerCase())) &&
-                                (filter === 'all' || (filter === 'hot' && {{ $isHot ? 'true' : 'false' }}) || (filter === 'warm' && {{ $isWarm ? 'true' : 'false' }}));
-                        });
-                    "
+                    x-show='
+                        (search === "" ||
+                         @json($post->localized_title).toLowerCase().includes(search.toLowerCase()) ||
+                         @json($post->subreddit).toLowerCase().includes(search.toLowerCase())
+                        ) &&
+                        (filter === "all" ||
+                         (filter === "hot" && {{ $isHot ? 'true' : 'false' }}) ||
+                         (filter === "warm" && {{ $isWarm ? 'true' : 'false' }})
+                        )
+                    '
                 >
                     <x-opportunity-card :post="$post" :blurred-ids="$blurredIds" />
                 </div>
@@ -109,5 +107,6 @@
                 </div>
             @endforelse
         </div>
+    </div>
     @endif
 @endsection

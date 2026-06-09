@@ -19,7 +19,7 @@
             <div class="text-xl font-bold text-white"><?php echo e($stats['total_posts']); ?></div>
         </div>
         <div class="glass !p-4">
-            <div class="text-xs text-gray-500 mb-1"><?php echo e(__('Hot (score 80+)')); ?></div>
+            <div class="text-xs text-gray-500 mb-1"><?php echo e(__('Hot')); ?></div>
             <div class="text-xl font-bold text-red-400"><?php echo e($stats['hot_count']); ?></div>
         </div>
         <div class="glass !p-4">
@@ -44,8 +44,9 @@
             </a>
         </div>
     <?php else: ?>
+        <div x-data="{ filter: 'all', search: '' }">
         
-        <div class="flex items-center gap-3 mb-4 flex-wrap" x-data="{ filter: 'all', search: '' }">
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
             <input type="text" placeholder="<?php echo e(__('Search opportunities...')); ?>" x-model="search"
                 class="glass-input flex-1 min-w-48 text-sm">
             <button @click="filter = 'all'" :class="filter === 'all' ? 'glass-btn-primary' : 'glass-btn-secondary'" class="text-sm"><?php echo e(__('All')); ?></button>
@@ -83,23 +84,20 @@
         <div class="grid gap-3">
             <?php $__empty_1 = true; $__currentLoopData = $opportunities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $post): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <?php
-                    $isHot = $post->final_score >= 80;
-                    $isWarm = $post->final_score >= 60 && $post->final_score < 80;
+                    $isHot = $post->final_score >= 60;
+                    $isWarm = $post->final_score >= 40 && $post->final_score < 60;
                 ?>
                 <div class="dashboard-post"
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-init="
-                        $watch('filter', val => {
-                            show = (val === 'all' || (val === 'hot' && <?php echo e($isHot ? 'true' : 'false'); ?>) || (val === 'warm' && <?php echo e($isWarm ? 'true' : 'false'); ?>));
-                        });
-                        $watch('search', val => {
-                            const t = '<?php echo e(addslashes($post->localized_title)); ?>'.toLowerCase();
-                            const s = '<?php echo e(addslashes($post->subreddit)); ?>'.toLowerCase();
-                            show = (t.includes(val.toLowerCase()) || s.includes(val.toLowerCase())) &&
-                                (filter === 'all' || (filter === 'hot' && <?php echo e($isHot ? 'true' : 'false'); ?>) || (filter === 'warm' && <?php echo e($isWarm ? 'true' : 'false'); ?>));
-                        });
-                    "
+                    x-show='
+                        (search === "" ||
+                         <?php echo json_encode($post->localized_title, 15, 512) ?>.toLowerCase().includes(search.toLowerCase()) ||
+                         <?php echo json_encode($post->subreddit, 15, 512) ?>.toLowerCase().includes(search.toLowerCase())
+                        ) &&
+                        (filter === "all" ||
+                         (filter === "hot" && <?php echo e($isHot ? 'true' : 'false'); ?>) ||
+                         (filter === "warm" && <?php echo e($isWarm ? 'true' : 'false'); ?>)
+                        )
+                    '
                 >
                     <?php if (isset($component)) { $__componentOriginal24b019fd63fae09ba9fb2a5e4cd3e3be = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal24b019fd63fae09ba9fb2a5e4cd3e3be = $attributes; } ?>
@@ -128,6 +126,7 @@
                 </div>
             <?php endif; ?>
         </div>
+    </div>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
 

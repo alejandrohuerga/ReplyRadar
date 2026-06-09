@@ -25,7 +25,13 @@ class DashboardController extends Controller
 
         $blurredIds = collect([]);
         if ($user->plan === 'free') {
-            $blurredIds = $opportunities->take(5)->pluck('id');
+            $blurredIds = $opportunities->where('match_score', '>', 75)->pluck('id');
+
+            $teaserPosts = $opportunities->whereBetween('match_score', [80, 85]);
+            if ($teaserPosts->isNotEmpty()) {
+                $teaser = $teaserPosts->random();
+                $blurredIds = $blurredIds->reject(fn($id) => $id === $teaser->id);
+            }
         }
 
         return view('dashboard.index', [
@@ -34,7 +40,7 @@ class DashboardController extends Controller
             'blurredIds'    => $blurredIds,
             'stats'         => [
                 'total_posts'    => $opportunities->count(),
-                'hot_count'      => $opportunities->where('final_score', '>=', 40)->count(),
+                'hot_count'      => $opportunities->where('final_score', '>=', 60)->count(),
                 'avg_score'      => round($opportunities->avg('final_score'), 1),
                 'top_subreddit'  => $opportunities->groupBy('subreddit')
                                     ->sortByDesc->count()->keys()->first(),

@@ -8,9 +8,9 @@
     $matchScore = round($post->match_score);
     $redditScore = $post->reddit_score ?? 0;
 
-    if ($score >= 40) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
-    elseif ($score >= 25) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
-    elseif ($score >= 15) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
+    if ($score >= 60) { $badge = [__('Hot'), 'bg-red-500/20 text-red-400 border-red-500/20']; }
+    elseif ($score >= 40) { $badge = [__('Warm'), 'bg-orange-500/20 text-orange-400 border-orange-500/20']; }
+    elseif ($score >= 20) { $badge = [__('Cool'), 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20']; }
     else { $badge = [__('Cold'), 'bg-gray-500/20 text-gray-400 border-gray-500/20']; }
 
     if ($matchScore >= 80) { $fire = '🔥🔥🔥'; $fireClass = 'text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.6)]'; $fireBar = 'from-red-500 via-orange-400 to-yellow-300'; }
@@ -28,6 +28,9 @@
             <span class="text-xs text-gray-400 block">{{ __('Members only') }}</span>
             <div class="flex items-center gap-4 mt-3">
                 <div class="text-lg leading-none {{ $fireClass }}">{{ $fire }}</div>
+                <span class="inline-flex items-center gap-1 rounded-full border text-[10px] px-2 py-0.5 font-medium {{ $badge[1] }}">
+                    <span class="font-bold">{{ $score }}</span>
+                </span>
                 <div class="flex items-center gap-1">
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Match') }}</span>
                     <span class="text-sm font-extrabold {{ $matchScore >= 60 ? 'text-white' : ($matchScore >= 40 ? 'text-yellow-300' : 'text-gray-400') }}">

@@ -61,7 +61,13 @@ class ProjectController extends Controller
 
         $blurredIds = collect([]);
         if ($request->user()->plan === 'free') {
-            $blurredIds = $posts->take(5)->pluck('id');
+            $blurredIds = $posts->where('match_score', '>', 75)->pluck('id');
+
+            $teaserPosts = $posts->whereBetween('match_score', [80, 85]);
+            if ($teaserPosts->isNotEmpty()) {
+                $teaser = $teaserPosts->random();
+                $blurredIds = $blurredIds->reject(fn($id) => $id === $teaser->id);
+            }
         }
 
         return view('projects.show', [

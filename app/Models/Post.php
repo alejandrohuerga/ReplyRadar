@@ -19,14 +19,24 @@ class Post extends Model
     {
         $locale = app()->getLocale();
         $field = "title_{$locale}";
-        return $this->$field ?? $this->title;
+        $translated = $this->$field;
+        if ($translated !== null) {
+            return $translated;
+        }
+        $other = $locale === 'es' ? 'en' : 'es';
+        return $this->{"title_{$other}"} ?? $this->title;
     }
 
     public function getLocalizedContentAttribute(): string
     {
         $locale = app()->getLocale();
         $field = "content_{$locale}";
-        return $this->$field ?? $this->content ?? '';
+        $translated = $this->$field;
+        if ($translated !== null) {
+            return $translated;
+        }
+        $other = $locale === 'es' ? 'en' : 'es';
+        return $this->{"content_{$other}"} ?? $this->content ?? '';
     }
 
     protected $casts = [
@@ -42,9 +52,9 @@ class Post extends Model
     public function getScoreLabelAttribute(): string
     {
         return match (true) {
-            $this->final_score >= 80 => 'hot',
-            $this->final_score >= 60 => 'warm',
-            $this->final_score >= 40 => 'cool',
+            $this->final_score >= 60 => 'hot',
+            $this->final_score >= 40 => 'warm',
+            $this->final_score >= 20 => 'cool',
             default                  => 'cold',
         };
     }
