@@ -30,7 +30,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <tr>
 <td class="header">
 <a href="<?php echo new \Illuminate\Support\EncodedHtmlString($url); ?>" style="display: inline-block;">
-<img src="<?php echo new \Illuminate\Support\EncodedHtmlString(asset('images/logo/logoSoloSinFondo.png')); ?>" class="logo" alt="ReplyRadar" height="75" style="height: 75px; margin-bottom: 10px;">
+<img src="<?php echo new \Illuminate\Support\EncodedHtmlString(config('app.url')); ?>/images/logo/logoSoloSinFondo.png" class="logo" alt="ReplyRadar" height="75" style="height: 75px; margin-bottom: 10px;">
 <div style="font-size: 20px; font-weight: 800; color: #e4e4e7; letter-spacing: -0.5px;">ReplyRadar</div>
 </a>
 </td>
