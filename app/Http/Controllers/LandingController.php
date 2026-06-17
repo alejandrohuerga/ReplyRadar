@@ -2,7 +2,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class LandingController extends Controller
 {
@@ -12,6 +11,6 @@ class LandingController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return Inertia::render('Landing');
+        return view('landing');
     }
 }
