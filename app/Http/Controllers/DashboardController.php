@@ -2,17 +2,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user     = $request->user();
         $projects = $user->projects()->with('keywords')->get();
 
-        // Oportunidades globales del usuario ordenadas por score
         $opportunities = \App\Models\Post::whereHas('keyword.project', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -24,12 +21,18 @@ class DashboardController extends Controller
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
             ]);
 
-        return Inertia::render('Dashboard', [
+        $blurredIds = collect([]);
+        if ($user->plan === 'free') {
+            $blurredIds = $opportunities->take(5)->pluck('id');
+        }
+
+        return view('dashboard.index', [
             'projects'      => $projects,
             'opportunities' => $opportunities,
+            'blurredIds'    => $blurredIds,
             'stats'         => [
                 'total_posts'    => $opportunities->count(),
-                'hot_count'      => $opportunities->where('final_score', '>=', 80)->count(),
+                'hot_count'      => $opportunities->where('final_score', '>=', 40)->count(),
                 'avg_score'      => round($opportunities->avg('final_score'), 1),
                 'top_subreddit'  => $opportunities->groupBy('subreddit')
                                     ->sortByDesc->count()->keys()->first(),
