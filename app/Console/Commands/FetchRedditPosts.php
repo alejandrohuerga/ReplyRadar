@@ -2,8 +2,11 @@
 namespace App\Console\Commands;
 
 use App\Models\Keyword;
+use App\Models\Project;
 use App\Services\OpportunityEnricherService;
+use App\Services\MastodonFetcherService;
 use App\Services\RedditFetcherService;
+use App\Services\TwitterFetcherService;
 use Illuminate\Console\Command;
 
 class FetchRedditPosts extends Command
@@ -13,6 +16,8 @@ class FetchRedditPosts extends Command
 
     public function handle(
         RedditFetcherService       $fetcher,
+        TwitterFetcherService      $twitterFetcher,
+        MastodonFetcherService     $mastodonFetcher,
         OpportunityEnricherService $enricher,
     ): int {
         $query = Keyword::where('is_active', true)
@@ -29,13 +34,24 @@ class FetchRedditPosts extends Command
             return self::SUCCESS;
         }
 
-        $this->info("Processing {$keywords->count()} keywords with multi-sort Reddit search...");
+        $this->info("Processing {$keywords->count()} keywords...");
         $bar   = $this->output->createProgressBar($keywords->count());
         $total = 0;
 
         foreach ($keywords as $keyword) {
+            $project = $keyword->project;
+            $user    = $project->user;
+
             $saved  = $fetcher->fetchForKeyword($keyword);
             $total += $saved;
+
+            if ($user && in_array($user->plan, ['pro', 'business'])) {
+                $twitterSaved = $twitterFetcher->fetchForKeyword($keyword);
+                $total += $twitterSaved;
+            }
+
+            $mastodonSaved = $mastodonFetcher->fetchForKeyword($keyword);
+            $total += $mastodonSaved;
 
             if ($saved > 0 && $this->option('enrich')) {
                 $enriched = $enricher->enrichKeyword($keyword->id);

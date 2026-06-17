@@ -26,6 +26,22 @@ return [
         ],
     ],
 
+    'twitter' => [
+        'enabled'          => env('TWITTER_ENABLED', false),
+        'bearer_token'     => env('TWITTER_BEARER_TOKEN'),
+        'api_key'          => env('TWITTER_API_KEY'),
+        'api_secret'       => env('TWITTER_API_SECRET'),
+        'access_token'     => env('TWITTER_ACCESS_TOKEN'),
+        'access_secret'    => env('TWITTER_ACCESS_SECRET'),
+        'per_keyword'      => 25,
+    ],
+
+    'mastodon' => [
+        'enabled'     => env('MASTODON_ENABLED', true),
+        'instance'    => env('MASTODON_INSTANCE', 'mastodon.social'),
+        'per_keyword' => 25,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Scoring Weights
@@ -34,10 +50,10 @@ return [
     | urgency_depth es la media de urgency_score + depth_score.
     */
     'scoring' => [
-        'intent_weight'          => 0.30,
-        'match_weight'           => 0.30,
-        'engagement_weight'      => 0.10,
-        'freshness_weight'       => 0.10,
+        'intent_weight'          => 0.35,
+        'match_weight'           => 0.25,
+        'engagement_weight'      => 0.05,
+        'freshness_weight'       => 0.15,
         'urgency_depth_weight'   => 0.15,
         'competition_penalty'    => 0.05,
     ],
@@ -56,11 +72,20 @@ return [
         'base_url'               => 'https://www.reddit.com',
         'user_agent'             => 'ReplyRadar/2.0 (business opportunity detector)',
         'per_mode'               => 25,
-        'sort_modes'             => ['relevance', 'new', 'hot'],
+        'sort_modes'             => ['relevance'],
         'dedup_hash'             => true,
         'fetch_comments'         => false,
         'comments_per_post'      => 30,
         'time_filter'            => 'week',
+
+        'oauth' => [
+            'enabled'        => env('REDDIT_OAUTH_ENABLED', false),
+            'client_id'      => env('REDDIT_CLIENT_ID'),
+            'client_secret'  => env('REDDIT_CLIENT_SECRET'),
+            'username'       => env('REDDIT_USERNAME'),
+            'password'       => env('REDDIT_PASSWORD'),
+            'token_url'      => 'https://www.reddit.com/api/v1/access_token',
+        ],
     ],
 
     /*
@@ -225,12 +250,12 @@ return [
     'matching' => [
         'enable_stemming'       => true,
         'min_word_length'       => 3,
-        'exact_phrase_title_bonus' => 90,
-        'exact_phrase_content_bonus' => 70,
-        'all_words_title_bonus' => 75,
-        'partial_match_max'     => 40,
+        'exact_phrase_title_bonus' => 80,
+        'exact_phrase_content_bonus' => 55,
+        'all_words_title_bonus' => 60,
+        'partial_match_max'     => 25,
         'semantic_threshold'    => 0.5,
-        'synonym_match_boost'   => 0.7,
+        'synonym_match_boost'   => 0.5,
         'proximity_max_spread'  => 40,
     ],
 
@@ -266,5 +291,6 @@ return [
     'stripe_prices' => [
         'pro'      => env('STRIPE_PRO_PRICE_ID'),
         'business' => env('STRIPE_BUSINESS_PRICE_ID'),
+        'promo_14' => env('STRIPE_PROMO_14'),
     ],
 ];

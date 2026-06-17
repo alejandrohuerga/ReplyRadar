@@ -102,28 +102,47 @@ class IntentScoringService
         $this->depthDetailIndicators = config('replyradar.depth_signals.detail_indicators', []);
     }
 
-    public function score(string $title, string $content = ''): float
+    public function score(string $title, string $content = '', float $matchScore = 0): float
     {
-        $text  = strtolower($title . ' ' . $content);
         $titleLower = strtolower($title);
-        $score = 20.0;
+        $text       = strtolower($title . ' ' . $content);
 
-        $intentBonus = $this->detectBuyerIntent($text);
-        $spamPenalty = $this->detectSpam($text);
-        $discussionBonus = $this->detectDiscussion($text);
-        $urgencyBonus = $this->detectUrgency($text);
-        $budgetBonus = $this->detectBudget($text);
-        $depthBonus = $this->detectDepth($titleLower, $content);
-        $questionBonus = $this->detectQuestionType($titleLower);
-        $qualityPenalty = $this->detectQualityIssues($title, $content);
+        $intentInTitle   = $this->detectBuyerIntent($titleLower);
+        $intentInContent = $content ? $this->detectBuyerIntent($text) : 0;
+        $wordIntent      = $intentInTitle === 0 ? $this->detectWordIntent($titleLower) : 0;
 
-        $score += $intentBonus;
+        $spamPenalty     = $this->detectSpam($text);
+        $discussionBonus = $this->detectDiscussion($titleLower);
+        $urgencyBonus    = $this->detectUrgency($titleLower);
+        $budgetBonus     = $this->detectBudget($titleLower);
+        $questionBonus   = $this->detectQuestionType($titleLower);
+        $qualityPenalty  = $this->detectQualityIssues($title, $content);
+
+        if ($intentInTitle > 0) {
+            $score = 20 + $intentInTitle;
+            $score += $urgencyBonus * 0.3;
+            $score += $budgetBonus * 0.3;
+            $score += $questionBonus;
+        } elseif ($wordIntent > 0) {
+            $score = 15 + $wordIntent;
+            $score += $urgencyBonus * 0.3;
+            $score += $budgetBonus * 0.3;
+            $score += $questionBonus * 0.5;
+        } elseif ($intentInContent > 50) {
+            $score = 15 + $intentInContent * 0.7;
+        } elseif ($discussionBonus > 0 && $questionBonus > 0) {
+            $score = 30 + $discussionBonus + $questionBonus;
+            $score += $urgencyBonus * 0.2;
+            if ($matchScore >= 70) {
+                $score += 10;
+            }
+        } elseif ($questionBonus > 0) {
+            $score = 25 + $questionBonus;
+        } else {
+            $score = 5;
+        }
+
         $score += $spamPenalty;
-        $score += $discussionBonus;
-        $score += $urgencyBonus;
-        $score += $budgetBonus;
-        $score += $depthBonus;
-        $score += $questionBonus;
         $score += $qualityPenalty;
 
         return round(max(0, min(100, $score)), 1);
@@ -205,6 +224,43 @@ class IntentScoringService
         }
 
         return round(max(0, min(100, $score)), 1);
+    }
+
+    private function detectWordIntent(string $title): float
+    {
+        $words = str_word_count($title, 1);
+        $score = 0;
+
+        $highIntent = [
+            'looking', 'searching', 'seeking', 'need', 'needs',
+            'help', 'recommend', 'suggest', 'alternative', 'replace',
+            'switch', 'worth', 'price', 'cost', 'budget', 'afford',
+            'frustrated', 'broken', 'issue', 'problem', 'struggling',
+            'evaluate', 'compare', 'decide', 'choice', 'option',
+            'busco', 'busca', 'buscar', 'buscando', 'encuentra',
+            'encontrar', 'consigo', 'conseguir', 'ayuda', 'ayuden',
+            'recomienda', 'recomendaciones', 'recomiendan',
+            'experiencia', 'opiniones', 'alternativa', 'necesito',
+            'clientes', 'proveedores', 'servicio', 'contratar',
+            'trouver', 'cherche', 'cherchez', 'besoin',
+            'preciso', 'precisa', 'cliente', 'contratar',
+        ];
+
+        foreach ($words as $word) {
+            if (in_array($word, $highIntent)) {
+                $score += 16;
+            }
+        }
+
+        if (preg_match('/(how|what|where|which|como|como|donde|onde)\s+to/i', $title)) {
+            $score += 20;
+        }
+
+        if (preg_match('/\b(para|para conseguir|para encontrar|para contratar)\b/i', $title)) {
+            $score += 12;
+        }
+
+        return min(70, $score);
     }
 
     private function detectBuyerIntent(string $text): float

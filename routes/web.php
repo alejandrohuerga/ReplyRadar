@@ -4,10 +4,10 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
-
-
+Route::get('/language/{locale}', LanguageController::class)->name('language.switch');
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
@@ -16,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard principal
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+    Route::post('/dashboard/refresh', [DashboardController::class, 'refresh'])
+        ->name('dashboard.refresh');
 
     // Proyectos
     Route::get('/projects',              [ProjectController::class, 'index'])->name('projects.index');
@@ -23,14 +25,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}',    [ProjectController::class, 'show'])->name('projects.show');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
+    Route::post('/projects/{project}/refresh',           [ProjectController::class, 'refresh'])->name('projects.refresh');
+
     // Keywords (anidadas bajo proyecto)
     Route::post('/projects/{project}/keywords',      [KeywordController::class, 'store'])->name('keywords.store');
     Route::patch('/keywords/{keyword}/toggle',       [KeywordController::class, 'toggle'])->name('keywords.toggle');
-    Route::delete('/keywords/{keyword}',             [KeywordController::class, 'destroy'])->name('keywords.destroy');
+    Route::match(['delete', 'post'], '/keywords/{keyword}', [KeywordController::class, 'destroy'])->name('keywords.destroy');
 
     // Billing
     Route::get('/billing/plans',    [BillingController::class, 'plans'])->name('billing.plans');
     Route::post('/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+    Route::post('/billing/promo-14', [BillingController::class, 'checkoutPromo14'])->name('billing.promo14');
     Route::get('/billing/success',  [BillingController::class, 'success'])->name('billing.success');
     Route::get('/billing/portal',   [BillingController::class, 'portal'])->name('billing.portal');
 

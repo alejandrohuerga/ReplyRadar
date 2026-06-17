@@ -23,7 +23,10 @@ class CommentAnalysisService
 
         try {
             $postId = $post->external_id;
-            $url = "https://www.reddit.com/comments/{$postId}.json";
+            $subreddit = $post->subreddit;
+            $slug = $this->slugify($post->title);
+
+            $url = "https://www.reddit.com/r/{$subreddit}/comments/{$postId}/{$slug}/.rss";
 
             $response = Http::withHeaders([
                 'User-Agent' => $redditConfig['user_agent'],
@@ -36,15 +39,9 @@ class CommentAnalysisService
                 return ['competition_score' => 0, 'op_engaged' => false];
             }
 
-            $data = $response->json();
-            if (empty($data) || !isset($data[1]['data']['children'])) {
-                return ['competition_score' => 0, 'op_engaged' => false];
-            }
+            $comments = $this->parseCommentRss($response->body(), $post->author);
 
-            $comments = $data[1]['data']['children'];
-            $postAuthor = strtolower($post->author ?? '');
-
-            return $this->analyzeComments($comments, $postAuthor);
+            return $comments;
 
         } catch (\Exception $e) {
             Log::warning("Comment analysis failed for post {$post->id}: {$e->getMessage()}");
@@ -52,52 +49,65 @@ class CommentAnalysisService
         }
     }
 
-    private function analyzeComments(array $comments, string $postAuthor): array
+    private function slugify(string $title): string
+    {
+        $slug = strtolower($title);
+        $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
+        $slug = trim($slug, '_');
+        $slug = substr($slug, 0, 80);
+        return $slug;
+    }
+
+    private function parseCommentRss(string $xml, string $postAuthor): array
     {
         $competitionScore = 0;
         $opEngaged = false;
         $totalComments = 0;
         $solutionComments = 0;
 
-        foreach ($comments as $comment) {
-            $data = $comment['data'] ?? [];
-            if (empty($data) || isset($data['removed'])) continue;
+        try {
+            $feed = simplexml_load_string($xml);
+            if (!$feed) return ['competition_score' => 0, 'op_engaged' => false];
 
-            $totalComments++;
-            $body = strtolower($data['body'] ?? '');
-            $author = strtolower($data['author'] ?? '');
+            foreach ($feed->entry as $i => $entry) {
+                if ($i === 0) continue;
 
-            if ($author === $postAuthor && $author !== '') {
-                $opEngaged = true;
-                $opEngagementSignals = $this->opEngagementSignals;
-                foreach ($opEngagementSignals as $phrase => $weight) {
-                    if (str_contains($body, $phrase)) {
-                        $opEngaged = true;
-                        break;
+                $totalComments++;
+                $authorFull = (string) $entry->author->name;
+                $author = ltrim($authorFull, '/u/');
+                $bodyHtml = (string) $entry->content;
+                $body = strip_tags($bodyHtml);
+                $body = html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $bodyLower = mb_strtolower($body);
+
+                if ($author === mb_strtolower($postAuthor) && $author !== '') {
+                    foreach ($this->opEngagementSignals as $phrase => $weight) {
+                        if (str_contains($bodyLower, $phrase)) {
+                            $opEngaged = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            $isSolution = false;
-            foreach ($this->competitionSignals as $phrase => $weight) {
-                if (str_contains($body, $phrase)) {
-                    $competitionScore += $weight;
-                    $isSolution = true;
+                $isSolution = false;
+                foreach ($this->competitionSignals as $phrase => $weight) {
+                    if (str_contains($bodyLower, $phrase)) {
+                        $competitionScore += $weight;
+                        $isSolution = true;
+                    }
+                }
+
+                if (preg_match('/https?:\/\/[^\s]+/', $body)) {
+                    $competitionScore += 5;
+                }
+
+                if ($isSolution) {
+                    $solutionComments++;
                 }
             }
-
-            if (preg_match('/https?:\/\/[^\s]+/', $body)) {
-                $competitionScore += 5;
-            }
-
-            if ($isSolution) {
-                $solutionComments++;
-            }
-
-            $commentScore = $data['score'] ?? 0;
-            if ($commentScore > 5 && $isSolution) {
-                $competitionScore += 3;
-            }
+        } catch (\Exception $e) {
+            Log::warning("Comment RSS parse error: {$e->getMessage()}");
+            return ['competition_score' => 0, 'op_engaged' => false];
         }
 
         $competitionScore = min(100, $competitionScore);

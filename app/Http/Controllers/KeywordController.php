@@ -3,12 +3,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Keyword;
 use App\Models\Project;
+use App\Services\MastodonFetcherService;
 use App\Services\RedditFetcherService;
+use App\Services\TwitterFetcherService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class KeywordController extends Controller
 {
-    public function store(Request $request, Project $project, RedditFetcherService $fetcher)
+    public function store(
+        Request $request,
+        Project $project,
+        RedditFetcherService   $redditFetcher,
+        MastodonFetcherService $mastodonFetcher,
+        TwitterFetcherService  $twitterFetcher,
+    )
     {
         abort_if($project->user_id !== $request->user()->id, 403);
 
@@ -16,7 +25,6 @@ class KeywordController extends Controller
             'term' => 'required|string|max:100',
         ]);
 
-        // Límite de keywords del plan
         $user    = $request->user();
         $limit   = config("replyradar.plans.{$user->plan}.max_keywords");
         $current = Keyword::whereHas('project', fn($q) =>
@@ -29,10 +37,7 @@ class KeywordController extends Controller
 
         $keyword = $project->keywords()->create($validated);
 
-        // Fetch inmediato en background
-        $fetcher->fetchForKeyword($keyword);
-
-        return back()->with('success', "Keyword '{$keyword->term}' añadida y procesada.");
+        return back()->with('success', "Keyword '{$keyword->term}' añadida. Usa el botón Refresh para buscar posts.");
     }
 
     public function toggle(Request $request, Keyword $keyword)
@@ -44,8 +49,18 @@ class KeywordController extends Controller
 
     public function destroy(Request $request, Keyword $keyword)
     {
+        abort_unless($request->isMethod('delete') || $request->isMethod('post'), 405);
         abort_if($keyword->project->user_id !== $request->user()->id, 403);
-        $keyword->delete();
-        return back()->with('success', 'Keyword eliminada.');
+
+        $projectId = $keyword->project_id;
+
+        try {
+            $keyword->delete();
+            Log::info("Keyword {$keyword->id} eliminada del proyecto {$projectId}");
+            return back()->with('success', 'Keyword eliminada.');
+        } catch (\Exception $e) {
+            Log::error("Error al eliminar keyword {$keyword->id}: {$e->getMessage()}");
+            return back()->withErrors(['error' => 'No se pudo eliminar la keyword.']);
+        }
     }
 }
