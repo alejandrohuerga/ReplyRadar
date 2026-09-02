@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification;
-use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +14,7 @@ use Laravel\Cashier\Billable;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
 
     /** @use HasFactory<UserFactory> */
@@ -47,11 +46,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    public function sendEmailVerificationNotification(): void
-    {
-        $this->notify(new VerifyEmailNotification);
     }
 
     public function sendPasswordResetNotification($token): void

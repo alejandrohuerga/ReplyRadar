@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "74109609691aa70f681ea891ddce0282",
+    "content-hash": "12054b2394c6d756322ecf2e0dd46639",
     "packages": [
         {
             "name": "brick/math",
@@ -3606,16 +3606,16 @@
         },
         {
             "name": "stichoza/google-translate-php",
-            "version": "v5.3.1",
+            "version": "v5.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Stichoza/google-translate-php.git",
-                "reference": "4d9a267ac063c16967df67dcba30a71fbfb5f550"
+                "reference": "2891310296cc115786d7c135a47a4ed53cd38df1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Stichoza/google-translate-php/zipball/4d9a267ac063c16967df67dcba30a71fbfb5f550",
-                "reference": "4d9a267ac063c16967df67dcba30a71fbfb5f550",
+                "url": "https://api.github.com/repos/Stichoza/google-translate-php/zipball/2891310296cc115786d7c135a47a4ed53cd38df1",
+                "reference": "2891310296cc115786d7c135a47a4ed53cd38df1",
                 "shasum": ""
             },
             "require": {
@@ -3655,7 +3655,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Stichoza/google-translate-php/issues",
-                "source": "https://github.com/Stichoza/google-translate-php/tree/v5.3.1"
+                "source": "https://github.com/Stichoza/google-translate-php/tree/v5.3.0"
             },
             "funding": [
                 {
@@ -3683,7 +3683,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-11-01T22:45:28+00:00"
+            "time": "2025-05-20T08:38:25+00:00"
         },
         {
             "name": "stripe/stripe-php",

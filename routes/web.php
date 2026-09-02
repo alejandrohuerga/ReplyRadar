@@ -11,7 +11,7 @@ Route::get('/language/{locale}', LanguageController::class)->name('language.swit
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // Dashboard principal
     Route::get('/dashboard', [DashboardController::class, 'index'])
