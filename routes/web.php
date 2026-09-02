@@ -11,17 +11,21 @@ Route::get('/language/{locale}', LanguageController::class)->name('language.swit
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // Dashboard principal
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+    Route::post('/dashboard/refresh', [DashboardController::class, 'refresh'])
+        ->name('dashboard.refresh');
 
     // Proyectos
     Route::get('/projects',              [ProjectController::class, 'index'])->name('projects.index');
     Route::post('/projects',             [ProjectController::class, 'store'])->name('projects.store');
     Route::get('/projects/{project}',    [ProjectController::class, 'show'])->name('projects.show');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+
+    Route::post('/projects/{project}/refresh',           [ProjectController::class, 'refresh'])->name('projects.refresh');
 
     // Keywords (anidadas bajo proyecto)
     Route::post('/projects/{project}/keywords',      [KeywordController::class, 'store'])->name('keywords.store');

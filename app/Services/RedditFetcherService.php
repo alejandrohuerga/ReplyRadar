@@ -3,28 +3,32 @@ namespace App\Services;
 
 use App\Models\Keyword;
 use App\Models\Post;
+use App\Services\ContentTranslationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RedditFetcherService
 {
-    private IntentScoringService   $intentScorer;
-    private KeywordMatchingService $keywordMatcher;
-    private FinalScoreService      $finalScorer;
+    private IntentScoringService      $intentScorer;
+    private KeywordMatchingService    $keywordMatcher;
+    private FinalScoreService         $finalScorer;
+    private ContentTranslationService $translator;
 
     private array   $seenHashes = [];
     private ?string $accessToken = null;
     private ?Carbon $tokenExpiresAt = null;
 
     public function __construct(
-        IntentScoringService   $intentScorer,
-        KeywordMatchingService $keywordMatcher,
-        FinalScoreService      $finalScorer,
+        IntentScoringService      $intentScorer,
+        KeywordMatchingService    $keywordMatcher,
+        FinalScoreService         $finalScorer,
+        ContentTranslationService $translator,
     ) {
         $this->intentScorer    = $intentScorer;
         $this->keywordMatcher  = $keywordMatcher;
         $this->finalScorer     = $finalScorer;
+        $this->translator      = $translator;
     }
 
     public function fetchForKeyword(Keyword $keyword): int
@@ -50,7 +54,6 @@ class RedditFetcherService
                 }
 
                 $allPostData = array_merge($allPostData, $parsed);
-                usleep(500000);
 
             } catch (\Exception $e) {
                 Log::error("Reddit fetch exception [{$sort}]: {$e->getMessage()}");
@@ -85,7 +88,7 @@ class RedditFetcherService
         $response = Http::withHeaders([
             'Authorization' => "Bearer {$token}",
             'User-Agent'    => $config['user_agent'],
-        ])->timeout(15)->get('https://oauth.reddit.com/search', [
+        ])->timeout(8)->get('https://oauth.reddit.com/search', [
             'q'        => $term,
             'sort'     => $sort,
             'limit'    => $limit,
@@ -105,7 +108,7 @@ class RedditFetcherService
     {
         $response = Http::withHeaders([
             'User-Agent' => $config['user_agent'],
-        ])->timeout(15)->get('https://www.reddit.com/search.rss', [
+        ])->timeout(8)->get('https://www.reddit.com/search.rss', [
             'q'     => $term,
             'sort'  => $sort,
             'limit' => $limit,
@@ -314,12 +317,21 @@ class RedditFetcherService
             opEngaged: false,
         );
 
+        $locale = app()->getLocale();
+        $titleEn = $locale !== 'en' ? $this->translator->translateToEnglish($title) : null;
+        $titleEs = $locale !== 'es' ? $this->translator->translateToSpanish($title) : null;
+        $contentEs = $locale === 'es' ? $this->translator->translateToSpanish(substr($content, 0, 5000)) : null;
+
         try {
             Post::create([
                 'keyword_id'       => $keyword->id,
                 'external_id'      => $externalId,
                 'title'            => $title,
                 'content'          => substr($content, 0, 5000),
+                'title_en'         => $titleEn,
+                'content_en'       => null,
+                'title_es'         => $titleEs,
+                'content_es'       => ($contentEs !== $content) ? $contentEs : null,
                 'subreddit'        => $data['subreddit'] ?? '',
                 'url'              => $data['url'] ?? ('https://reddit.com' . ($data['permalink'] ?? '')),
                 'author'           => $author,

@@ -52,14 +52,24 @@ class ProjectController extends Controller
             ->orderByDesc($sortColumn)
             ->limit(100)
             ->get([
-                'id', 'title', 'subreddit', 'url', 'author',
+                'id', 'title', 'title_es', 'title_en',
+                'content', 'content_es', 'content_en',
+                'subreddit', 'url', 'author',
                 'reddit_score', 'num_comments', 'intent_score',
                 'match_score', 'final_score', 'posted_at', 'keyword_id',
+                'source', 'like_count', 'retweet_count', 'reply_count',
+                'author_handle', 'author_followers',
             ]);
 
         $blurredIds = collect([]);
         if ($request->user()->plan === 'free') {
-            $blurredIds = $posts->take(5)->pluck('id');
+            $blurredIds = $posts->where('match_score', '>', 75)->pluck('id');
+
+            $teaserPosts = $posts->whereBetween('match_score', [80, 85]);
+            if ($teaserPosts->isNotEmpty()) {
+                $teaser = $teaserPosts->random();
+                $blurredIds = $blurredIds->reject(fn($id) => $id === $teaser->id);
+            }
         }
 
         return view('projects.show', [
@@ -82,6 +92,28 @@ class ProjectController extends Controller
     {
         $limit = config("replyradar.plans.{$user->plan}.max_projects");
         return $user->projects()->count() < $limit;
+    }
+
+    public function refresh(Request $request, Project $project)
+    {
+        abort_if($project->user_id !== $request->user()->id, 403);
+
+        $php = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $cmd = "\"{$php}\" \"{$artisan}\" fetch:reddit-posts --quiet";
+
+        if (class_exists('COM')) {
+            try {
+                $wsh = new COM('WScript.Shell');
+                $wsh->Run($cmd, 0, false);
+            } catch (\Exception $e) {
+                pclose(popen($cmd, "r"));
+            }
+        } else {
+            pclose(popen($cmd, "r"));
+        }
+
+        return back()->with('success', __('Refresh started — posts will appear in a moment.'));
     }
 
     private function canAddKeyword($user, Project $project): bool

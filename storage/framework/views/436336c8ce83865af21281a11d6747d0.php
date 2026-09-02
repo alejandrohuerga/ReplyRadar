@@ -218,4 +218,4 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-<?php /**PATH C:\laragon\www\ReplyRadar\resources\views/landing.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\laragon\www\ReplyRadar\resources\views\landing.blade.php ENDPATH**/ ?>
