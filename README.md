@@ -67,7 +67,7 @@ El usuario crea un proyecto, define una o varias palabras clave, y ReplyRadar es
 
 | Landing | Dashboard de oportunidades |
 |---|---|
-| ![Landing de ReplyRadar](./docs/screenshots/landing.png) | ![Panel de oportunidades](./docs/screenshots/dashboard.png) |
+| ![Landing de ReplyRadar](/public/images/ReplyRadarInicio.png) | ![Panel de oportunidades](/public/images/BuscarporpalabrasclaveReplyRadar.png) |
 
 </div>
 
